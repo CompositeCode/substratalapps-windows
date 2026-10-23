@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Substratal.Hub.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Substratal">
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- PLATFORM-SPEC §2: tall custom title bar; icon + "Substratal"; centred command palette (GLB-01). -->
+        <TitleBar
+            x:Name="AppTitleBar"
+            Title="Substratal"
+            IsBackButtonVisible="False"
+            IsPaneToggleButtonVisible="False"
+            BackRequested="OnBackRequested"
+            PaneToggleRequested="OnPaneToggleRequested">
+            <TitleBar.IconSource>
+                <ImageIconSource ImageSource="ms-appx:///Assets/mark-small.svg" />
+            </TitleBar.IconSource>
+            <TitleBar.Content>
+                <AutoSuggestBox
+                    x:Name="Palette"
+                    MinWidth="320"
+                    MaxWidth="560"
+                    VerticalAlignment="Center"
+                    PlaceholderText="Search or jump to…  Ctrl+K"
+                    QueryIcon="Find"
+                    Visibility="Collapsed"
+                    AutomationProperties.Name="Command palette"
+                    TextChanged="OnPaletteTextChanged"
+                    QuerySubmitted="OnPaletteQuerySubmitted" />
+            </TitleBar.Content>
+            <TitleBar.RightHeader>
+                <!-- Non-production environments carry a persistent marker (PLAN.md §3.3). -->
+                <Border
+                    x:Name="EnvironmentBadge"
+                    Margin="0,0,8,0"
+                    Padding="8,2"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                    CornerRadius="{ThemeResource ControlCornerRadius}"
+                    Visibility="Collapsed">
+                    <TextBlock x:Name="EnvironmentText" Style="{StaticResource CaptionTextBlockStyle}" />
+                </Border>
+            </TitleBar.RightHeader>
+        </TitleBar>
+
+        <Frame x:Name="RootFrame" Grid.Row="1" />
+    </Grid>
+</Window>

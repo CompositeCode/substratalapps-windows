@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Substratal.Hub.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- SET-01 Settings (Appearance and About so far). SettingsCard layout: min height 68, 4 epx gap, 24 between groups. -->
+    <ScrollViewer>
+        <StackPanel Margin="36,0,36,36" MaxWidth="1000" HorizontalAlignment="Left" Spacing="4">
+            <TextBlock Margin="0,0,0,8" Style="{StaticResource BodyStrongTextBlockStyle}" Text="Appearance" />
+
+            <Border Style="{StaticResource CardBorderStyle}" MinHeight="{StaticResource SettingsCardMinHeight}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Theme" />
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Light, dark, or match Windows." />
+                    </StackPanel>
+                    <ComboBox x:Name="ModeBox" Grid.Column="1" MinWidth="200" SelectionChanged="OnAppearanceChanged" AutomationProperties.Name="Theme mode" />
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" MinHeight="{StaticResource SettingsCardMinHeight}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Light theme" />
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Used in light mode. Default: Moss Paper." />
+                    </StackPanel>
+                    <ComboBox x:Name="LightBox" Grid.Column="1" MinWidth="200" SelectionChanged="OnAppearanceChanged" AutomationProperties.Name="Light theme" />
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" MinHeight="{StaticResource SettingsCardMinHeight}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Dark theme" />
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Used in dark mode. Default: Forest Floor." />
+                    </StackPanel>
+                    <ComboBox x:Name="DarkBox" Grid.Column="1" MinWidth="200" SelectionChanged="OnAppearanceChanged" AutomationProperties.Name="Dark theme" />
+                </Grid>
+            </Border>
+
+            <TextBlock Margin="0,24,0,8" Style="{StaticResource BodyStrongTextBlockStyle}" Text="Help" />
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="4">
+                    <HyperlinkButton x:Name="WindowsGuideLink" Content="Using Substratal on Windows" />
+                    <HyperlinkButton x:Name="HelpCenterLink" Content="Help center" />
+                    <HyperlinkButton x:Name="FaqLink" Content="Frequently asked questions" />
+                    <HyperlinkButton x:Name="ApiReferenceLink" Content="API reference" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Margin="0,24,0,8" Style="{StaticResource BodyStrongTextBlockStyle}" Text="About" />
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock x:Name="VersionText" IsTextSelectionEnabled="True" />
+                    <TextBlock x:Name="ApiText" IsTextSelectionEnabled="True" Style="{StaticResource IdTextStyle}" />
+                    <TextBlock x:Name="AccountText" IsTextSelectionEnabled="True" Style="{StaticResource IdTextStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Button Margin="0,24,0,0" Click="OnSignOut" Content="Sign out" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

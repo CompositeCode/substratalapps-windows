@@ -1,0 +1,69 @@
+name: API contract sync
+
+# Keeps the generated client current with the API. When the published openapi.yaml changes, this regenerates
+# src/Substratal.Hub.Core/Api/Generated and opens (or updates) a pull request, so CI builds the app against the new
+# contract before anyone merges it. A new Substratal-Version (a breaking change) still needs a person: bump
+# ApiVersion.Current alongside it (see api/README.md).
+#
+# Triggers: daily, by hand, or repository_dispatch "api-contract-updated" from the API repository.
+# Needs: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
+on:
+  schedule:
+    - cron: "37 6 * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [api-contract-updated]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Fetch the published contract and regenerate
+        id: regen
+        run: |
+          dotnet tool restore
+          scripts/gen-api.sh --fetch
+          if git diff --quiet -- api src/Substratal.Hub.Core/Api/Generated; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$(grep -m1 -E '^\s+version:' api/openapi.yaml | awk '{print $2}' | tr -d '"')" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and test against it
+        if: steps.regen.outputs.changed == 'true'
+        run: |
+          dotnet build src/Substratal.Hub.Core -c Release
+          dotnet test --project tests/Substratal.Hub.Core.Tests -c Release
+
+      - name: Open or update the pull request
+        if: steps.regen.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.regen.outputs.version }}
+        run: |
+          branch=chore/api-contract-sync
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$branch"
+          git add api src/Substratal.Hub.Core/Api/Generated
+          git commit -m "Sync the API client with openapi.yaml $VERSION"
+          git push --force origin "$branch"
+          body="Regenerated \`src/Substratal.Hub.Core/Api/Generated\` from the published \`openapi.yaml\` ($VERSION).
+
+          Check the API [Changelog](https://compositecode.github.io/substratalapps.com/changelog/) for what changed. If it adds a new \`Substratal-Version\`, bump \`ApiVersion.Current\` in this pull request."
+          if gh pr view "$branch" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$branch" --title "Sync the API client with openapi.yaml $VERSION" --body "$body"
+          else
+            gh pr create --head "$branch" --base main --title "Sync the API client with openapi.yaml $VERSION" --body "$body"
+          fi

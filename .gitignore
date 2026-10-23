@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+artifacts/
+AppPackages/
+BundleArtifacts/
+*.msix
+*.msixbundle
+*.appxsym
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+.idea/
+
+# Signing material never goes in the repository
+*.pfx
+*.cer
+
+# Local tooling
+node_modules/
+.DS_Store
+TestResults/

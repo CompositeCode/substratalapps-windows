@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Company>Composite Code</Company>
+    <Product>Substratal Hub for Windows</Product>
+    <Copyright>© 2026 Adron Hall / Composite Code</Copyright>
+    <!-- The app version. CI stamps the build number; the help center links release notes by this value. -->
+    <VersionPrefix>0.1.0</VersionPrefix>
+  </PropertyGroup>
+</Project>

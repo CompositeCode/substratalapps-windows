@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Substratal.Hub.Core/Substratal.Hub.Core.csproj" />
+    <Project Path="src/Substratal.Hub/Substratal.Hub.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Substratal.Hub.Core.Tests/Substratal.Hub.Core.Tests.csproj" />
+  </Folder>
+</Solution>

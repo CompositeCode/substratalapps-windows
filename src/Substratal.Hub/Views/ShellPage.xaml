@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Substratal.Hub.Views.ShellPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- PLATFORM-SPEC §2: NavigationView Left ≥ 1008 epx, LeftCompact 641–1007, LeftMinimal ≤ 640;
+         Account, Plan & Billing and Settings in the pane footer. -->
+    <NavigationView
+        x:Name="Nav"
+        CompactModeThresholdWidth="641"
+        ExpandedModeThresholdWidth="1008"
+        IsBackButtonVisible="Collapsed"
+        IsPaneToggleButtonVisible="False"
+        IsSettingsVisible="False"
+        IsTitleBarAutoPaddingEnabled="False"
+        PaneDisplayMode="Auto"
+        ItemInvoked="OnItemInvoked">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- GLB-03 app-wide banners: version notices, two-factor requirement, offline. -->
+            <StackPanel Grid.Row="0" Margin="36,12,36,0" Spacing="8">
+                <InfoBar x:Name="VersionBar" IsClosable="True" Severity="Warning">
+                    <InfoBar.ActionButton>
+                        <Button Click="OnUpdate" Content="Update" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
+                <InfoBar
+                    x:Name="TwoFactorBar"
+                    IsClosable="False"
+                    Message="Your account has administrator permissions. Turn on two-factor authentication to keep using them."
+                    Severity="Warning"
+                    Title="Two-factor authentication required">
+                    <InfoBar.ActionButton>
+                        <Button Click="OnTurnOnTwoFactor" Content="Turn on 2FA" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
+            </StackPanel>
+
+            <!-- Page header: TitleLarge + BreadcrumbBar for drill-ins + help (PLATFORM-SPEC §2). -->
+            <Grid Grid.Row="1" Margin="36,20,36,8" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="4">
+                    <BreadcrumbBar x:Name="Crumbs" ItemClicked="OnCrumbClicked" />
+                    <TextBlock x:Name="PageTitle" Style="{StaticResource TitleLargeTextBlockStyle}" />
+                </StackPanel>
+                <Button
+                    x:Name="HelpButton"
+                    Grid.Column="1"
+                    VerticalAlignment="Bottom"
+                    Click="OnHelp"
+                    AutomationProperties.Name="Help for this screen"
+                    ToolTipService.ToolTip="Help for this screen (F1)">
+                    <FontIcon Glyph="&#xE897;" />
+                </Button>
+            </Grid>
+
+            <Frame x:Name="ContentFrame" Grid.Row="2" Navigated="OnNavigated" />
+        </Grid>
+    </NavigationView>
+</Page>

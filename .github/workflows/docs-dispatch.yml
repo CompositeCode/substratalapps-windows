@@ -1,0 +1,44 @@
+name: Update the help center
+
+# The Hub help center (CompositeCode/substratalapps-applications-specs → /help/) is the one documentation reference
+# for every Hub app. When this app's code, screen registry or docs change on main, ask the help center to rebuild,
+# so its Windows pages, screen pages and "What's new" reflect what shipped. See help/README.md → Automation there.
+#
+# Needs the secret SPECS_DOCS_TOKEN: a fine-grained token with Contents: read and write on
+# CompositeCode/substratalapps-applications-specs. Without it, this job says so and succeeds.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "docs/**"
+      - "api/openapi.yaml"
+      - "Directory.Build.props"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Notify the help center
+        env:
+          GH_TOKEN: ${{ secrets.SPECS_DOCS_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::notice::SPECS_DOCS_TOKEN isn't set, so the help center wasn't notified. It still rebuilds daily."
+            exit 0
+          fi
+          version=$(sed -n 's:.*<VersionPrefix>\(.*\)</VersionPrefix>.*:\1:p' Directory.Build.props)
+          contract=$(grep -m1 -E '^\s+version:' api/openapi.yaml | awk '{print $2}' | tr -d '"')
+          gh api repos/CompositeCode/substratalapps-applications-specs/dispatches \
+            -f event_type=app-docs-updated \
+            -F 'client_payload[app]=windows' \
+            -F "client_payload[sha]=$GITHUB_SHA" \
+            -F "client_payload[version]=$version" \
+            -F "client_payload[openapi]=$contract"
+          echo "Asked the help center to rebuild for windows $version ($GITHUB_SHA)."

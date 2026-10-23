@@ -1,0 +1,84 @@
+name: CI
+
+# Every push and pull request:
+#   core     Substratal.Hub.Core on Linux: build, unit tests, and drift checks against the specs and the API contract.
+#   windows  The WinUI app on Windows: build and an unsigned MSIX, uploaded as an artifact.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Build and test Core
+        run: |
+          dotnet build src/Substratal.Hub.Core -c Release
+          dotnet test --project tests/Substratal.Hub.Core.Tests -c Release
+
+      # The screen registry and error copy are generated from the specs repo; a spec change that isn't regenerated
+      # here fails the build, so the app can't silently drift from SCREENS.md or COPY-AND-STATES.md.
+      - name: Generated files match the specs
+        run: python3 scripts/gen-from-spec.py --check
+
+      # The generated API client must match the committed contract snapshot (api/openapi.yaml).
+      - name: Generated API client matches api/openapi.yaml
+        run: |
+          dotnet tool restore
+          scripts/gen-api.sh
+          git diff --exit-code --stat -- src/Substratal.Hub.Core/Api/Generated
+
+      # A newer published contract isn't a failure here: api-sync.yml opens a pull request for it.
+      - name: Compare with the live contract
+        run: |
+          curl -fsS https://compositecode.github.io/substratalapps.com/openapi.yaml -o /tmp/live.yaml
+          if ! cmp -s /tmp/live.yaml api/openapi.yaml; then
+            echo "::notice::The published openapi.yaml differs from api/openapi.yaml. api-sync.yml will open a pull request."
+          fi
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        platform: [x64, ARM64]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build src/Substratal.Hub/Substratal.Hub.csproj -c Release -p:Platform=${{ matrix.platform }}
+
+      - name: Package (unsigned MSIX)
+        run: >
+          dotnet publish src/Substratal.Hub/Substratal.Hub.csproj -c Release -p:Platform=${{ matrix.platform }}
+          -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=false
+          -p:AppxPackageDir=${{ github.workspace }}\artifacts\msix\
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: msix-${{ matrix.platform }}
+          path: artifacts/msix/
+          if-no-files-found: error
+          retention-days: 14
