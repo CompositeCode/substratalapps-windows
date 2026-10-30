@@ -35,7 +35,7 @@ namespace Substratal.Hub.Core.Api.Generated.Webhooks
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WebhooksRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks{?application_id*,cursor*,limit*}", pathParameters)
+        public WebhooksRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks{?application_id*,cursor*,include*,limit*,scope*,status*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace Substratal.Hub.Core.Api.Generated.Webhooks
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WebhooksRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks{?application_id*,cursor*,limit*}", rawUrl)
+        public WebhooksRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks{?application_id*,cursor*,include*,limit*,scope*,status*}", rawUrl)
         {
         }
         /// <summary>
@@ -180,10 +180,26 @@ namespace Substratal.Hub.Core.Api.Generated.Webhooks
             public string Cursor { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Webhooks.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("limit")]
             public int? Limit { get; set; }
             #pragma warning restore CS1591
+            /// <summary>&quot;platform&quot; returns only platform-scoped subscriptions. Callers without webhooks.manage see none, so they get an empty page. Can&apos;t be combined with application_id (400 invalid_request).</summary>
+            [QueryParameter("scope")]
+            public global::Substratal.Hub.Core.Api.Generated.Webhooks.GetScopeQueryParameterType? Scope { get; set; }
+            /// <summary>Subscriptions in any of these statuses. Repeatable.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("status")]
+            public global::Substratal.Hub.Core.Api.Generated.Webhooks.GetStatusQueryParameterType[]? Status { get; set; }
+#nullable restore
+#else
+            [QueryParameter("status")]
+            public global::Substratal.Hub.Core.Api.Generated.Webhooks.GetStatusQueryParameterType[] Status { get; set; }
+#endif
         }
     }
 }

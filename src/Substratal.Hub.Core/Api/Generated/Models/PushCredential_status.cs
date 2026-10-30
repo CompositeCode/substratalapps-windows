@@ -3,10 +3,9 @@ using System.Runtime.Serialization;
 using System;
 namespace Substratal.Hub.Core.Api.Generated.Models
 {
+    /// <summary>disabled: the Application was retired.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public enum PushCredential_status
-    #pragma warning restore CS1591
     {
         [EnumMember(Value = "active")]
         #pragma warning disable CS1591
@@ -15,6 +14,10 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         [EnumMember(Value = "failed")]
         #pragma warning disable CS1591
         Failed,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "disabled")]
+        #pragma warning disable CS1591
+        Disabled,
         #pragma warning restore CS1591
     }
 }

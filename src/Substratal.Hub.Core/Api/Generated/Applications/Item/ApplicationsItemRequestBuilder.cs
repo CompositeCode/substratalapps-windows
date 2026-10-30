@@ -3,6 +3,7 @@
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
+using Substratal.Hub.Core.Api.Generated.Applications.Item.Icon;
 using Substratal.Hub.Core.Api.Generated.Applications.Item.PushCredentials;
 using Substratal.Hub.Core.Api.Generated.Models;
 using System.Collections.Generic;
@@ -18,6 +19,11 @@ namespace Substratal.Hub.Core.Api.Generated.Applications.Item
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class ApplicationsItemRequestBuilder : BaseRequestBuilder
     {
+        /// <summary>The icon property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Applications.Item.Icon.IconRequestBuilder Icon
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Applications.Item.Icon.IconRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>The pushCredentials property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Applications.Item.PushCredentials.PushCredentialsRequestBuilder PushCredentials
         {
@@ -38,6 +44,34 @@ namespace Substratal.Hub.Core.Api.Generated.Applications.Item
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
         public ApplicationsItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/applications/{id}", rawUrl)
         {
+        }
+        /// <summary>
+        /// Only a test-mode Application that nothing references can be deleted; a live one is 409 application_not_deletable (retire it with review_status: retired instead). Anything still referencing it (Entitlements, API Keys, webhooks, devices, notifications, settings or profile rows, push credentials, role assignments, refresh tokens, Users who signed up through it) is 409 application_in_use, naming each kind in `references`. Its own Roles go with it; audit history is kept. Writes application.deleted.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 400 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 403 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 404 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 409 status code</exception>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public async Task DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#nullable restore
+#else
+        public async Task DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#endif
+            var requestInfo = ToDeleteRequestInformation(requestConfiguration);
+            var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
+            {
+                { "400", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "403", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "404", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "409", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+            };
+            await RequestAdapter.SendNoContentAsync(requestInfo, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Fetch one Application
@@ -75,6 +109,7 @@ namespace Substratal.Hub.Core.Api.Generated.Applications.Item
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 403 status code</exception>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 409 status code</exception>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 422 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 429 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::Substratal.Hub.Core.Api.Generated.Models.Application?> PatchAsync(global::Substratal.Hub.Core.Api.Generated.Models.ApplicationWrite body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -92,8 +127,28 @@ namespace Substratal.Hub.Core.Api.Generated.Applications.Item
                 { "403", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
                 { "409", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
                 { "422", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "429", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.Application>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.Application.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Only a test-mode Application that nothing references can be deleted; a live one is 409 application_not_deletable (retire it with review_status: retired instead). Anything still referencing it (Entitlements, API Keys, webhooks, devices, notifications, settings or profile rows, push credentials, role assignments, refresh tokens, Users who signed up through it) is 409 application_in_use, naming each kind in `references`. Its own Roles go with it; audit history is kept. Writes application.deleted.
+        /// </summary>
+        /// <returns>A <see cref="RequestInformation"/></returns>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        {
+#nullable restore
+#else
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        {
+#endif
+            var requestInfo = new RequestInformation(Method.DELETE, UrlTemplate, PathParameters);
+            requestInfo.Configure(requestConfiguration);
+            requestInfo.Headers.TryAdd("Accept", "application/json");
+            return requestInfo;
         }
         /// <summary>
         /// Fetch one Application

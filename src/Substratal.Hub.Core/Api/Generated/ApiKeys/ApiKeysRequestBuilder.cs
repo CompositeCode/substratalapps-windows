@@ -35,7 +35,7 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public ApiKeysRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/api-keys{?cursor*,include_inactive*,intended_use*,limit*,mode*,scope*}", pathParameters)
+        public ApiKeysRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/api-keys{?cursor*,include*,include_inactive*,intended_use*,limit*,mode*,q*,scope*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public ApiKeysRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/api-keys{?cursor*,include_inactive*,intended_use*,limit*,mode*,scope*}", rawUrl)
+        public ApiKeysRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/api-keys{?cursor*,include*,include_inactive*,intended_use*,limit*,mode*,q*,scope*}", rawUrl)
         {
         }
         /// <summary>
@@ -167,6 +167,9 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys
             public string Cursor { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.ApiKeys.GetIncludeQueryParameterType? Include { get; set; }
             /// <summary>Include revoked and expired keys</summary>
             [QueryParameter("include_inactive")]
             public bool? IncludeInactive { get; set; }
@@ -182,6 +185,16 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys
             [QueryParameter("mode")]
             public global::Substratal.Hub.Core.Api.Generated.ApiKeys.GetModeQueryParameterType? Mode { get; set; }
             #pragma warning restore CS1591
+            /// <summary>Case-insensitive prefix match on name</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("q")]
+            public string? Q { get; set; }
+#nullable restore
+#else
+            [QueryParameter("q")]
+            public string Q { get; set; }
+#endif
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
             #pragma warning disable CS1591

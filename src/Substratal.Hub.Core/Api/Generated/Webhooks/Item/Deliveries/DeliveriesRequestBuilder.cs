@@ -35,7 +35,7 @@ namespace Substratal.Hub.Core.Api.Generated.Webhooks.Item.Deliveries
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public DeliveriesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks/{id}/deliveries{?cursor*,event_id*,limit*,since*,status*}", pathParameters)
+        public DeliveriesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks/{id}/deliveries{?cursor*,event_id*,include*,limit*,since*,status*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace Substratal.Hub.Core.Api.Generated.Webhooks.Item.Deliveries
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public DeliveriesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks/{id}/deliveries{?cursor*,event_id*,limit*,since*,status*}", rawUrl)
+        public DeliveriesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/webhooks/{id}/deliveries{?cursor*,event_id*,include*,limit*,since*,status*}", rawUrl)
         {
         }
         /// <summary>
@@ -129,6 +129,9 @@ namespace Substratal.Hub.Core.Api.Generated.Webhooks.Item.Deliveries
             public string EventId { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Webhooks.Item.Deliveries.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("limit")]
             public int? Limit { get; set; }

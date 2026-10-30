@@ -76,6 +76,22 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         #pragma warning disable CS1591
         AuditExported,
         #pragma warning restore CS1591
+        [EnumMember(Value = "application.retired")]
+        #pragma warning disable CS1591
+        ApplicationRetired,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "application.deleted")]
+        #pragma warning disable CS1591
+        ApplicationDeleted,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "profile.avatar_changed")]
+        #pragma warning disable CS1591
+        ProfileAvatar_changed,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "application.icon_changed")]
+        #pragma warning disable CS1591
+        ApplicationIcon_changed,
+        #pragma warning restore CS1591
         [EnumMember(Value = "entitlement.granted")]
         #pragma warning disable CS1591
         EntitlementGranted,
@@ -251,6 +267,10 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         [EnumMember(Value = "device.deleted")]
         #pragma warning disable CS1591
         DeviceDeleted,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "platform.settings_updated")]
+        #pragma warning disable CS1591
+        PlatformSettings_updated,
         #pragma warning restore CS1591
     }
 }

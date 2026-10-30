@@ -16,9 +16,15 @@ using Substratal.Hub.Core.Api.Generated.Entitlements;
 using Substratal.Hub.Core.Api.Generated.Health;
 using Substratal.Hub.Core.Api.Generated.Organizations;
 using Substratal.Hub.Core.Api.Generated.Permissions;
+using Substratal.Hub.Core.Api.Generated.Platform;
+using Substratal.Hub.Core.Api.Generated.PushCredentials;
 using Substratal.Hub.Core.Api.Generated.Roles;
+using Substratal.Hub.Core.Api.Generated.Stats;
+using Substratal.Hub.Core.Api.Generated.Subscriptions;
 using Substratal.Hub.Core.Api.Generated.Tenants;
+using Substratal.Hub.Core.Api.Generated.Usage;
 using Substratal.Hub.Core.Api.Generated.Users;
+using Substratal.Hub.Core.Api.Generated.WebhookDeliveries;
 using Substratal.Hub.Core.Api.Generated.Webhooks;
 using System.Collections.Generic;
 using System.IO;
@@ -77,20 +83,50 @@ namespace Substratal.Hub.Core.Api.Generated
         {
             get => new global::Substratal.Hub.Core.Api.Generated.Permissions.PermissionsRequestBuilder(PathParameters, RequestAdapter);
         }
+        /// <summary>The platform property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Platform.PlatformRequestBuilder Platform
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Platform.PlatformRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The pushCredentials property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.PushCredentials.PushCredentialsRequestBuilder PushCredentials
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.PushCredentials.PushCredentialsRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>The roles property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Roles.RolesRequestBuilder Roles
         {
             get => new global::Substratal.Hub.Core.Api.Generated.Roles.RolesRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The stats property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Stats.StatsRequestBuilder Stats
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Stats.StatsRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The subscriptions property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Subscriptions.SubscriptionsRequestBuilder Subscriptions
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Subscriptions.SubscriptionsRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The tenants property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Tenants.TenantsRequestBuilder Tenants
         {
             get => new global::Substratal.Hub.Core.Api.Generated.Tenants.TenantsRequestBuilder(PathParameters, RequestAdapter);
         }
+        /// <summary>The usage property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Usage.UsageRequestBuilder Usage
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Usage.UsageRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>The users property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Users.UsersRequestBuilder Users
         {
             get => new global::Substratal.Hub.Core.Api.Generated.Users.UsersRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The webhookDeliveries property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.WebhookDeliveries.WebhookDeliveriesRequestBuilder WebhookDeliveries
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.WebhookDeliveries.WebhookDeliveriesRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The webhooks property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Webhooks.WebhooksRequestBuilder Webhooks

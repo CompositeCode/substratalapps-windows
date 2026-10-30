@@ -71,6 +71,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("permissions", value); }
         }
 #endif
+        /// <summary>Replaces the default 100 requests/minute for this key. Null (the default) means the platform default. Operations with their own ceiling keep it. Only platform api_keys.manage may send it; anyone else gets 403 forbidden.</summary>
+        public int? RateLimitPerMinute
+        {
+            get { return BackingStore?.Get<int?>("rate_limit_per_minute"); }
+            set { BackingStore?.Set("rate_limit_per_minute", value); }
+        }
         /// <summary>When true, every operation marked x-substratal-destructive is rejected with 403 destructive_operation_restricted.</summary>
         public bool? RestrictDestructive
         {
@@ -125,6 +131,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
                 { "mode", n => { Mode = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApiKeyWrite_mode>(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
                 { "permissions", n => { Permissions = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
+                { "rate_limit_per_minute", n => { RateLimitPerMinute = n.GetIntValue(); } },
                 { "restrict_destructive", n => { RestrictDestructive = n.GetBoolValue(); } },
                 { "scope", n => { Scope = n.GetStringValue(); } },
             };
@@ -141,6 +148,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApiKeyWrite_mode>("mode", Mode);
             writer.WriteStringValue("name", Name);
             writer.WriteCollectionOfPrimitiveValues<string>("permissions", Permissions);
+            writer.WriteIntValue("rate_limit_per_minute", RateLimitPerMinute);
             writer.WriteBoolValue("restrict_destructive", RestrictDestructive);
             writer.WriteStringValue("scope", Scope);
             writer.WriteAdditionalData(AdditionalData);

@@ -4,6 +4,8 @@ using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
 using Substratal.Hub.Core.Api.Generated.Models;
+using Substratal.Hub.Core.Api.Generated.Users.BulkInvite;
+using Substratal.Hub.Core.Api.Generated.Users.BulkSuspend;
 using Substratal.Hub.Core.Api.Generated.Users.Item;
 using Substratal.Hub.Core.Api.Generated.Users.Me;
 using System.Collections.Generic;
@@ -19,6 +21,16 @@ namespace Substratal.Hub.Core.Api.Generated.Users
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class UsersRequestBuilder : BaseRequestBuilder
     {
+        /// <summary>The bulkInvite property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Users.BulkInvite.BulkInviteRequestBuilder BulkInvite
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Users.BulkInvite.BulkInviteRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The bulkSuspend property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Users.BulkSuspend.BulkSuspendRequestBuilder BulkSuspend
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Users.BulkSuspend.BulkSuspendRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>The me property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Users.Me.MeRequestBuilder Me
         {
@@ -41,7 +53,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public UsersRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users{?application_id*,created_after*,created_before*,cursor*,email*,limit*,organization_id*,q*,role_id*,status*}", pathParameters)
+        public UsersRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users{?application_id*,created_after*,created_before*,cursor*,email*,include*,limit*,organization_id*,q*,role_id*,status*}", pathParameters)
         {
         }
         /// <summary>
@@ -49,7 +61,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public UsersRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users{?application_id*,created_after*,created_before*,cursor*,email*,limit*,organization_id*,q*,role_id*,status*}", rawUrl)
+        public UsersRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users{?application_id*,created_after*,created_before*,cursor*,email*,include*,limit*,organization_id*,q*,role_id*,status*}", rawUrl)
         {
         }
         /// <summary>
@@ -211,6 +223,9 @@ namespace Substratal.Hub.Core.Api.Generated.Users
             public string Email { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Users.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("limit")]
             public int? Limit { get; set; }
