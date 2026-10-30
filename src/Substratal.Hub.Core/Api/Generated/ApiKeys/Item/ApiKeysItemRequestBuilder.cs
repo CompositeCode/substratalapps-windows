@@ -89,7 +89,7 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys.Item
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.ApiKey>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.ApiKey.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Change name, permissions, or restrict_destructive
+        /// Change name, permissions, restrict_destructive, or rate_limit_per_minute (api_keys.manage only)
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.ApiKey"/></returns>
         /// <param name="body">The request body</param>
@@ -156,7 +156,7 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys.Item
             return requestInfo;
         }
         /// <summary>
-        /// Change name, permissions, or restrict_destructive
+        /// Change name, permissions, restrict_destructive, or rate_limit_per_minute (api_keys.manage only)
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

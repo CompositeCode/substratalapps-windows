@@ -85,7 +85,7 @@ namespace Substratal.Hub.Core.Api.Generated.Roles.Item
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.Role>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.Role.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Change a Role&apos;s permissions or description
+        /// An app Role may be changed by platform roles.manage, the Application&apos;s own key holding roles.manage, or the Application&apos;s owner (its owner_user_id, or any active org_admin of its owner_organization_id) with no platform permission needed. Its permissions must be keys its own Application declares; a platform key, another Application&apos;s key, or an undeclared key returns 422 unknown_permission. A platform Role needs platform roles.manage, and every permission it grants must be one the caller holds (403 role_escalation_forbidden); seed Roles can&apos;t be changed (403 seed_role_immutable). A Role the caller can&apos;t see (another Application&apos;s, or a platform Role for a caller with no platform permission) returns 404 role_not_found; one it can see but not change returns 403 forbidden.
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.Role"/></returns>
         /// <param name="body">The request body</param>
@@ -93,6 +93,7 @@ namespace Substratal.Hub.Core.Api.Generated.Roles.Item
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 400 status code</exception>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 403 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 404 status code</exception>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 409 status code</exception>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 422 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -110,6 +111,7 @@ namespace Substratal.Hub.Core.Api.Generated.Roles.Item
             {
                 { "400", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
                 { "403", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "404", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
                 { "409", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
                 { "422", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
             };
@@ -154,7 +156,7 @@ namespace Substratal.Hub.Core.Api.Generated.Roles.Item
             return requestInfo;
         }
         /// <summary>
-        /// Change a Role&apos;s permissions or description
+        /// An app Role may be changed by platform roles.manage, the Application&apos;s own key holding roles.manage, or the Application&apos;s owner (its owner_user_id, or any active org_admin of its owner_organization_id) with no platform permission needed. Its permissions must be keys its own Application declares; a platform key, another Application&apos;s key, or an undeclared key returns 422 unknown_permission. A platform Role needs platform roles.manage, and every permission it grants must be one the caller holds (403 role_escalation_forbidden); seed Roles can&apos;t be changed (403 seed_role_immutable). A Role the caller can&apos;t see (another Application&apos;s, or a platform Role for a caller with no platform permission) returns 404 role_not_found; one it can see but not change returns 403 forbidden.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

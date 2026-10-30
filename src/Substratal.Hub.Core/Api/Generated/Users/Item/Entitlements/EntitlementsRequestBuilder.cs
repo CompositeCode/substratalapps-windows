@@ -22,7 +22,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Entitlements
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public EntitlementsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users/{id}/entitlements{?application_id*,cursor*,include_inactive*,limit*,source*,status*}", pathParameters)
+        public EntitlementsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users/{id}/entitlements{?application_id*,cursor*,include*,include_inactive*,limit*,source*,status*}", pathParameters)
         {
         }
         /// <summary>
@@ -30,7 +30,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Entitlements
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public EntitlementsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users/{id}/entitlements{?application_id*,cursor*,include_inactive*,limit*,source*,status*}", rawUrl)
+        public EntitlementsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/users/{id}/entitlements{?application_id*,cursor*,include*,include_inactive*,limit*,source*,status*}", rawUrl)
         {
         }
         /// <summary>
@@ -169,6 +169,9 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Entitlements
             public string Cursor { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Users.Item.Entitlements.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("include_inactive")]
             public bool? IncludeInactive { get; set; }

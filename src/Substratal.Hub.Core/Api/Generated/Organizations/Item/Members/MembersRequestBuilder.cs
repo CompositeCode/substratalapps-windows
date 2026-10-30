@@ -41,7 +41,7 @@ namespace Substratal.Hub.Core.Api.Generated.Organizations.Item.Members
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public MembersRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/organizations/{id}/members{?cursor*,limit*,membership_status*,q*,role*}", pathParameters)
+        public MembersRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/organizations/{id}/members{?cursor*,include*,limit*,membership_status*,q*,role*}", pathParameters)
         {
         }
         /// <summary>
@@ -49,7 +49,7 @@ namespace Substratal.Hub.Core.Api.Generated.Organizations.Item.Members
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public MembersRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/organizations/{id}/members{?cursor*,limit*,membership_status*,q*,role*}", rawUrl)
+        public MembersRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/organizations/{id}/members{?cursor*,include*,limit*,membership_status*,q*,role*}", rawUrl)
         {
         }
         /// <summary>
@@ -175,6 +175,9 @@ namespace Substratal.Hub.Core.Api.Generated.Organizations.Item.Members
             public string Cursor { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Organizations.Item.Members.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("limit")]
             public int? Limit { get; set; }

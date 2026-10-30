@@ -35,7 +35,7 @@ namespace Substratal.Hub.Core.Api.Generated.AuditEvents
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public AuditEventsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/audit-events{?action*,actor_id*,actor_type*,application_id*,cursor*,limit*,organization_id*,since*,target_id*,target_type*,target_user_id*,tenant_id*,until*}", pathParameters)
+        public AuditEventsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/audit-events{?action*,actor_id*,actor_type*,application_id*,cursor*,include*,limit*,organization_id*,request_id*,since*,target_id*,target_type*,target_user_id*,tenant_id*,until*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace Substratal.Hub.Core.Api.Generated.AuditEvents
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public AuditEventsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/audit-events{?action*,actor_id*,actor_type*,application_id*,cursor*,limit*,organization_id*,since*,target_id*,target_type*,target_user_id*,tenant_id*,until*}", rawUrl)
+        public AuditEventsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/audit-events{?action*,actor_id*,actor_type*,application_id*,cursor*,include*,limit*,organization_id*,request_id*,since*,target_id*,target_type*,target_user_id*,tenant_id*,until*}", rawUrl)
         {
         }
         /// <summary>
@@ -54,6 +54,7 @@ namespace Substratal.Hub.Core.Api.Generated.AuditEvents
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 400 status code</exception>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 403 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 422 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::Substratal.Hub.Core.Api.Generated.Models.AuditEventPage?> GetAsync(Action<RequestConfiguration<global::Substratal.Hub.Core.Api.Generated.AuditEvents.AuditEventsRequestBuilder.AuditEventsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -68,6 +69,7 @@ namespace Substratal.Hub.Core.Api.Generated.AuditEvents
             {
                 { "400", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
                 { "403", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "422", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.AuditEventPage>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.AuditEventPage.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
@@ -161,6 +163,9 @@ namespace Substratal.Hub.Core.Api.Generated.AuditEvents
             public string Cursor { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.AuditEvents.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("limit")]
             public int? Limit { get; set; }
@@ -177,6 +182,16 @@ namespace Substratal.Hub.Core.Api.Generated.AuditEvents
             [QueryParameter("organization_id")]
             public string OrganizationId { get; set; }
             #pragma warning restore CS1591
+#endif
+            /// <summary>Events written by one request: the X-Request-Id it sent or was given. Exact match.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("request_id")]
+            public string? RequestId { get; set; }
+#nullable restore
+#else
+            [QueryParameter("request_id")]
+            public string RequestId { get; set; }
 #endif
             #pragma warning disable CS1591
             [QueryParameter("since")]

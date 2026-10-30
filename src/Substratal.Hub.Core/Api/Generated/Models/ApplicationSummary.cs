@@ -13,7 +13,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
     public partial class ApplicationSummary : IAdditionalDataHolder, IBackedModel, IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>Which plan unlocks the Application: free for every User, standard for Users covered by a Standard subscription. Set by applications.manage; defaults to standard.</summary>
+        /// <summary>Who gets in without a grant. free: every User. standard: Users covered by a Standard subscription; first_party (Substratal&apos;s own) Applications only. restricted: only the people the developer grants Entitlements to, from their own billing or none. A first-party Application defaults to standard and only applications.manage changes its tier. Any other Application defaults to restricted, and its owner chooses free or restricted while it&apos;s approved or pending_review (409 application_not_available otherwise, at most 10 changes a day). standard on one that isn&apos;t first-party is 422 access_tier_reserved.</summary>
         public global::Substratal.Hub.Core.Api.Generated.Models.ApplicationAccessTier? AccessTier
         {
             get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationAccessTier?>("access_tier"); }
@@ -43,6 +43,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("description", value); }
         }
 #endif
+        /// <summary>Active Entitlements for the Application; a User grant and an Organization grant count once each</summary>
+        public int? HolderCount
+        {
+            get { return BackingStore?.Get<int?>("holder_count"); }
+            set { BackingStore?.Set("holder_count", value); }
+        }
         /// <summary>The icon_url property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -91,6 +97,44 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("name", value); }
         }
 #endif
+        /// <summary>The owner_organization_id property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? OwnerOrganizationId
+        {
+            get { return BackingStore?.Get<string?>("owner_organization_id"); }
+            set { BackingStore?.Set("owner_organization_id", value); }
+        }
+#nullable restore
+#else
+        public string OwnerOrganizationId
+        {
+            get { return BackingStore?.Get<string>("owner_organization_id"); }
+            set { BackingStore?.Set("owner_organization_id", value); }
+        }
+#endif
+        /// <summary>The owner_user_id property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? OwnerUserId
+        {
+            get { return BackingStore?.Get<string?>("owner_user_id"); }
+            set { BackingStore?.Set("owner_user_id", value); }
+        }
+#nullable restore
+#else
+        public string OwnerUserId
+        {
+            get { return BackingStore?.Get<string>("owner_user_id"); }
+            set { BackingStore?.Set("owner_user_id", value); }
+        }
+#endif
+        /// <summary>When the Application last entered pending_review. See Application.</summary>
+        public DateTimeOffset? ReviewRequestedAt
+        {
+            get { return BackingStore?.Get<DateTimeOffset?>("review_requested_at"); }
+            set { BackingStore?.Set("review_requested_at", value); }
+        }
         /// <summary>The review_status property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Models.ApplicationReviewStatus? ReviewStatus
         {
@@ -147,9 +191,13 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             {
                 { "access_tier", n => { AccessTier = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationAccessTier>(); } },
                 { "description", n => { Description = n.GetStringValue(); } },
+                { "holder_count", n => { HolderCount = n.GetIntValue(); } },
                 { "icon_url", n => { IconUrl = n.GetStringValue(); } },
                 { "id", n => { Id = n.GetStringValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
+                { "owner_organization_id", n => { OwnerOrganizationId = n.GetStringValue(); } },
+                { "owner_user_id", n => { OwnerUserId = n.GetStringValue(); } },
+                { "review_requested_at", n => { ReviewRequestedAt = n.GetDateTimeOffsetValue(); } },
                 { "review_status", n => { ReviewStatus = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationReviewStatus>(); } },
                 { "slug", n => { Slug = n.GetStringValue(); } },
                 { "visibility", n => { Visibility = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationVisibility>(); } },
@@ -164,9 +212,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationAccessTier>("access_tier", AccessTier);
             writer.WriteStringValue("description", Description);
+            writer.WriteIntValue("holder_count", HolderCount);
             writer.WriteStringValue("icon_url", IconUrl);
             writer.WriteStringValue("id", Id);
             writer.WriteStringValue("name", Name);
+            writer.WriteStringValue("owner_organization_id", OwnerOrganizationId);
+            writer.WriteStringValue("owner_user_id", OwnerUserId);
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationReviewStatus>("review_status", ReviewStatus);
             writer.WriteStringValue("slug", Slug);
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationVisibility>("visibility", Visibility);

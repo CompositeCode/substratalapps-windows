@@ -3,6 +3,7 @@
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
+using Substratal.Hub.Core.Api.Generated.Entitlements.BulkUpdate;
 using Substratal.Hub.Core.Api.Generated.Entitlements.Item;
 using Substratal.Hub.Core.Api.Generated.Models;
 using System.Collections.Generic;
@@ -18,6 +19,11 @@ namespace Substratal.Hub.Core.Api.Generated.Entitlements
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class EntitlementsRequestBuilder : BaseRequestBuilder
     {
+        /// <summary>The bulkUpdate property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Entitlements.BulkUpdate.BulkUpdateRequestBuilder BulkUpdate
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Entitlements.BulkUpdate.BulkUpdateRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>Gets an item from the Substratal.Hub.Core.Api.Generated.entitlements.item collection</summary>
         /// <param name="position">Unique identifier of the item</param>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Entitlements.Item.EntitlementsItemRequestBuilder"/></returns>
@@ -35,7 +41,7 @@ namespace Substratal.Hub.Core.Api.Generated.Entitlements
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public EntitlementsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/entitlements{?application_id*,cursor*,ends_before*,include_inactive*,limit*,order_id*,organization_id*,source*,status*,user_id*}", pathParameters)
+        public EntitlementsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/entitlements{?application_id*,cursor*,ends_before*,include*,include_inactive*,limit*,order_id*,organization_id*,source*,status*,user_id*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +49,7 @@ namespace Substratal.Hub.Core.Api.Generated.Entitlements
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public EntitlementsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/entitlements{?application_id*,cursor*,ends_before*,include_inactive*,limit*,order_id*,organization_id*,source*,status*,user_id*}", rawUrl)
+        public EntitlementsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/entitlements{?application_id*,cursor*,ends_before*,include*,include_inactive*,limit*,order_id*,organization_id*,source*,status*,user_id*}", rawUrl)
         {
         }
         /// <summary>
@@ -135,6 +141,9 @@ namespace Substratal.Hub.Core.Api.Generated.Entitlements
             [QueryParameter("ends_before")]
             public DateTimeOffset? EndsBefore { get; set; }
             #pragma warning restore CS1591
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Entitlements.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("include_inactive")]
             public bool? IncludeInactive { get; set; }

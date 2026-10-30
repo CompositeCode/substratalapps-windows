@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Substratal Apps — Platform API
-  version: "1.0.0-draft.9"
+  version: "1.0.0-draft.31"
   summary: >-
     User accounts, auth, roles, per-app entitlements (the on/off access
     switch), profiles, settings, organizations, tenancy, subscription billing,
@@ -29,6 +29,11 @@ info:
     restrict_destructive=true. For `conditional`, only requests matching
     `x-substratal-destructive-when` are rejected; the rest of the
     operation stays callable.
+    `x-substratal-step-up` (`always` | `conditional`) marks operations
+    that need a recent MFA check from a User session (Auth → Step-up):
+    without one within the last 10 minutes they return 403
+    reauthentication_required. For `conditional`, only requests matching
+    `x-substratal-step-up-when` need it.
     Application and Role ids are derived (app_<slug>, role_<slug>_<name>),
     not random; every other id is a prefix plus a ULID. `x-substratal-phase` gives the roadmap phase an operation
     ships in.
@@ -56,11 +61,18 @@ tags:
   - name: Tenancy
   - name: Billing
   - name: Audit
+  - name: Usage & stats
+    description: >-
+      Request usage per Application, API Key, and operation, and the console home screen's live counts.
   - name: Webhooks
   - name: Notifications
     description: >-
       Push notifications (APNs, FCM, Web Push) and the notification inbox.
   - name: API Keys
+  - name: Platform
+    description: >-
+      Runtime operational switches (signup, read-only maintenance) and client
+      feature flags.
   - name: Meta
 
 paths:
@@ -231,6 +243,42 @@ paths:
         "204": { description: Logged out }
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth/reauthenticate:
+    post:
+      operationId: auth.reauthenticate
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      tags: [Auth]
+      summary: Prove a second factor again, for step-up (User token, MFA enabled)
+      description: >-
+        Records a fresh MFA check on the calling session (mfa_verified_at), so
+        operations marked x-substratal-step-up work for the next 10 minutes.
+        Send exactly one of code (a current TOTP code) or recovery_code (a
+        single-use recovery code). The response is a new access token carrying
+        the updated mfa_verified_at claim; the refresh token is unchanged.
+        Wrong codes count toward a lockout: after 5 in 15 minutes it is 429
+        too_many_attempts. 409 mfa_not_enabled when the User has no TOTP.
+      x-substratal-phase: mvp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, pattern: "^[0-9]{6}$" }
+                recovery_code: { type: string }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: Re-authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Reauthentication" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /auth/app-tokens:
     post:
@@ -710,6 +758,7 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: status, in: query, description: "deleted is allowed for users.manage only", schema: { type: string, enum: [active, invited, suspended, deleted] } }
         - { name: email, in: query, schema: { type: string, format: email } }
         - { name: q, in: query, schema: { type: string, minLength: 3 } }
@@ -766,6 +815,84 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
 
+  /users/bulk-invite:
+    post:
+      operationId: users.bulkInvite
+      tags: [Users]
+      summary: Invite up to 25 users in one call (users.manage)
+      description: >-
+        Requires users.manage. Each email is POST /users with status invited and an invitation email,
+        processed independently: one failing email doesn't stop the others, and each success writes its
+        own user.created Audit Event. Each email counts against POST /users's rate limit (20/min), so
+        emails past it get a per-item 429. The response is 200 with one result per email, in request
+        order; an item's status is what POST /users would have returned (201, 409 email_taken,
+        422 validation_failed, 429 rate_limited). application_id, if given, becomes each new User's
+        signup_application_id and brands the invitation email. See /api-reference/conventions/#bulk-operations.
+      x-substratal-phase: mvp
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [emails]
+              properties:
+                emails: { type: array, minItems: 1, maxItems: 25, items: { type: string } }
+                application_id: { type: string }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: One result per email, in request order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkInviteResults" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /users/bulk-suspend:
+    post:
+      operationId: users.bulkSuspend
+      tags: [Users]
+      summary: Suspend up to 25 users in one call (users.manage)
+      description: >-
+        Requires users.manage. Each id is POST /users/{id}/suspend with the shared reason, processed
+        independently, each with its own user.suspended Audit Event and webhooks. The protected
+        superadmin is a per-item 409 user_protected. Like POST /users/{id}/suspend it needs a recent
+        MFA check (403 reauthentication_required for the whole batch). Each id counts against
+        POST /users/{id}/suspend's rate limit. The response is 200 with one result per id, in request order; an item's status is
+        what POST /users/{id}/suspend would have returned. See /api-reference/conventions/#bulk-operations.
+      x-substratal-phase: mvp
+      x-substratal-destructive: always
+      x-substratal-step-up: always
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_ids]
+              properties:
+                user_ids: { type: array, minItems: 1, maxItems: 25, items: { type: string } }
+                reason: { type: string, maxLength: 2000 }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: One result per id, in request order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkResults" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
   /users/{id}:
     parameters:
       - $ref: "#/components/parameters/UserIdOrMe"
@@ -793,6 +920,8 @@ paths:
       x-substratal-phase: mvp
       x-substratal-destructive: conditional
       x-substratal-destructive-when: "status becomes suspended"
+      x-substratal-step-up: conditional
+      x-substratal-step-up-when: "status becomes suspended"
       parameters:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/IfMatch"
@@ -823,6 +952,7 @@ paths:
       summary: Soft-delete a user (self or users.manage)
       x-substratal-phase: mvp
       x-substratal-destructive: always
+      x-substratal-step-up: always
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
         "204": { description: Deleted }
@@ -840,6 +970,7 @@ paths:
       summary: Suspend a user (users.manage)
       x-substratal-phase: mvp
       x-substratal-destructive: always
+      x-substratal-step-up: always
       requestBody:
         content:
           application/json:
@@ -903,6 +1034,7 @@ paths:
       summary: Request right-to-erasure (soft-delete now, hard-delete cascade in 7 days)
       x-substratal-phase: mvp
       x-substratal-destructive: always
+      x-substratal-step-up: always
       requestBody:
         content:
           application/json:
@@ -921,6 +1053,23 @@ paths:
   /users/{id}/erasure-requests/current:
     parameters:
       - $ref: "#/components/parameters/UserIdOrMe"
+    get:
+      operationId: users.getErasure
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      tags: [Users]
+      summary: Read the User's pending erasure request
+      description: "Self, or users.manage. Returns the erasure request while it's scheduled; 404 erasure_not_scheduled when none is pending (never requested, cancelled, or completed). A soft-deleted User 404s (user_not_found) for anyone without users.manage, as on cancel."
+      x-substratal-phase: mvp
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The scheduled erasure request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErasureRequest" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
     delete:
       operationId: users.cancelErasure
       parameters:
@@ -977,6 +1126,94 @@ paths:
               schema: { $ref: "#/components/schemas/Profile" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /users/{id}/avatar/uploads:
+    parameters:
+      - $ref: "#/components/parameters/UserIdOrMe"
+    post:
+      operationId: profiles.createAvatarUpload
+      tags: [Profiles]
+      summary: Start an avatar upload (self or users.manage)
+      description: >-
+        Returns a presigned POST: send the image straight to url as multipart/form-data, with every
+        entry of fields and then the file as the last field, named file, within 5 minutes. The API
+        never sees the bytes. Then call POST /users/{id}/avatar/uploads/{uploadId}/complete. PNG,
+        JPEG, or WebP, at most 2 MB (a larger content_length is 422 validation_failed). 10 upload
+        starts per caller per hour, shared with Application icons.
+      x-substratal-phase: mvp
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/IdempotencyKeyOptional"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ImageUploadRequest" }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "201":
+          description: Where and how to upload
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImageUpload" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /users/{id}/avatar/uploads/{uploadId}/complete:
+    parameters:
+      - $ref: "#/components/parameters/UserIdOrMe"
+      - { name: uploadId, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: profiles.completeAvatarUpload
+      tags: [Profiles]
+      summary: Check an uploaded avatar and make it the Profile's avatar_url (self or users.manage)
+      description: >-
+        Checks the uploaded file's magic bytes against the declared content_type, its size, and its
+        dimensions (at most 2048 × 2048), stores it at a content-addressed
+        https://assets.substratalapps.com/avatars/… URL, sets avatar_url, and deletes the previous
+        hosted avatar. A file that fails a check is deleted, and the call is 422 invalid_image with
+        details.reason. An upload that was never sent, or was already completed, is 404
+        upload_not_found. Writes profile.avatar_changed when someone other than the User does it.
+      x-substratal-phase: mvp
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The updated Profile
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /users/{id}/avatar:
+    parameters:
+      - $ref: "#/components/parameters/UserIdOrMe"
+    delete:
+      operationId: profiles.deleteAvatar
+      tags: [Profiles]
+      summary: Remove the avatar (self or users.manage)
+      description: >-
+        Sets avatar_url to null and deletes the hosted image, if it is one; an external https URL is
+        just cleared. PATCH /users/{id}/profile with avatar_url null does the same. Writes
+        profile.avatar_changed when someone other than the User does it.
+      x-substratal-phase: mvp
+      x-substratal-destructive: always
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "204": { description: Removed }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /users/{id}/settings:
     parameters:
@@ -1124,11 +1361,18 @@ paths:
       operationId: applications.list
       tags: [Applications]
       summary: List the catalog (filtered by visibility rules)
+      description: >-
+        Newest first by created_at, ties broken by id. With applications.manage,
+        review_status=pending_review is the review queue and defaults to oldest-waiting first, by
+        review_requested_at (falling back to created_at). sort sets the order explicitly by
+        created_at: created_at for oldest first, -created_at for newest first, in the queue too. A
+        cursor is only valid under the sort it was issued with.
       x-substratal-phase: mvp
       parameters:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: visibility, in: query, schema: { $ref: "#/components/schemas/ApplicationVisibility" } }
         - { name: review_status, in: query, schema: { $ref: "#/components/schemas/ApplicationReviewStatus" } }
         - { name: access_tier, in: query, schema: { $ref: "#/components/schemas/ApplicationAccessTier" } }
@@ -1136,8 +1380,12 @@ paths:
         - { name: tenant_id, in: query, schema: { type: string } }
         - { name: owner_user_id, in: query, schema: { type: string } }
         - { name: owner_organization_id, in: query, schema: { type: string } }
+        - { name: q, in: query, description: "Case-insensitive prefix match on name or slug", schema: { type: string } }
+        - { name: include_inactive, in: query, description: "Include retired Applications (also included by review_status=retired)", schema: { type: boolean, default: false } }
+        - { name: sort, in: query, description: "created_at (oldest first) or -created_at (newest first). Ties are broken by id in the same direction.", schema: { type: string, enum: [created_at, -created_at] } }
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
         "200":
           description: A page of Applications (trimmed view)
           content:
@@ -1151,7 +1399,8 @@ paths:
         applications.manage creates any Application, approved by default (concierge onboarding).
         Any other User with a verified email may submit their own: it's owned by the caller (or an
         Organization they're an org_admin of), starts in pending_review, and can't set visibility,
-        access_tier, review_status, or review_notes (403 moderation_field_forbidden). Unverified
+        review_status, or review_notes (403 moderation_field_forbidden). Its access_tier is free or
+        restricted (the default); standard is 422 access_tier_reserved. Unverified
         email is 403 email_not_verified; API Keys without applications.manage are 403 forbidden.
         Self-service submissions are limited to 10 per User per day.
       x-substratal-phase: mvp
@@ -1205,7 +1454,7 @@ paths:
       summary: Update a catalog entry (owner — configuration; applications.manage — anything)
       x-substratal-phase: mvp
       x-substratal-destructive: conditional
-      x-substratal-destructive-when: "review_status becomes rejected or suspended, or available_app_roles/permissions shrink"
+      x-substratal-destructive-when: "review_status becomes rejected, suspended, or retired, or available_app_roles/permissions shrink"
       parameters:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/IfMatch"
@@ -1223,6 +1472,115 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+    delete:
+      operationId: applications.delete
+      tags: [Applications]
+      summary: Delete an unreferenced test-mode Application (applications.manage)
+      description: >-
+        Only a test-mode Application that nothing references can be deleted; a live one is
+        409 application_not_deletable (retire it with review_status: retired instead). Anything
+        still referencing it (Entitlements, API Keys, webhooks, devices, notifications, settings or
+        profile rows, push credentials, role assignments, refresh tokens, Users who signed up
+        through it) is 409 application_in_use, naming each kind in `references`. Its own Roles go
+        with it; audit history is kept. Writes application.deleted.
+      x-substratal-phase: mvp
+      x-substratal-destructive: always
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /applications/{id}/icon/uploads:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: applications.createIconUpload
+      tags: [Applications]
+      summary: Start an icon upload (the owner or applications.manage)
+      description: >-
+        Returns a presigned POST, as for avatars: send the image straight to url with every entry of
+        fields and then the file as the last field, named file, within 5 minutes, then call
+        POST /applications/{id}/icon/uploads/{uploadId}/complete. PNG, JPEG, or WebP, square, at most
+        1 MB (a larger content_length is 422 validation_failed). 10 upload starts per caller per
+        hour, shared with avatars.
+      x-substratal-phase: mvp
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/IdempotencyKeyOptional"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ImageUploadRequest" }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "201":
+          description: Where and how to upload
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImageUpload" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /applications/{id}/icon/uploads/{uploadId}/complete:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: uploadId, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: applications.completeIconUpload
+      tags: [Applications]
+      summary: Check an uploaded icon and make it the Application's icon_url (the owner or applications.manage)
+      description: >-
+        Checks the uploaded file's magic bytes against the declared content_type, its size, and its
+        dimensions (square, at most 2048 × 2048), stores it at a content-addressed
+        https://assets.substratalapps.com/apps/… URL, sets icon_url, and deletes the previous hosted
+        icon. A file that fails a check is deleted, and the call is 422 invalid_image with
+        details.reason. An upload that was never sent, or was already completed, is 404
+        upload_not_found. Writes application.icon_changed.
+      x-substratal-phase: mvp
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The updated Application
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Application" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /applications/{id}/icon:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    delete:
+      operationId: applications.deleteIcon
+      tags: [Applications]
+      summary: Remove the icon (the owner or applications.manage)
+      description: >-
+        Sets icon_url to null and deletes the hosted image, if it is one; an external https URL is
+        just cleared. Writes application.icon_changed.
+      x-substratal-phase: mvp
+      x-substratal-destructive: always
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "204": { description: Removed }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   # ───────────────────────────── Entitlements ─────────────────────────────
 
@@ -1238,6 +1596,7 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: application_id, in: query, schema: { type: string } }
         - { name: status, in: query, schema: { $ref: "#/components/schemas/EntitlementStatus" } }
         - { name: source, in: query, schema: { $ref: "#/components/schemas/EntitlementSource" } }
@@ -1292,6 +1651,7 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: application_id, in: query, schema: { type: string } }
         - { name: status, in: query, schema: { $ref: "#/components/schemas/EntitlementStatus" } }
         - { name: user_id, in: query, schema: { type: string } }
@@ -1379,6 +1739,54 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /entitlements/bulk-update:
+    post:
+      operationId: entitlements.bulkUpdate
+      tags: [Entitlements]
+      summary: Change the status of up to 25 Entitlements in one call
+      description: >-
+        Each item is PATCH /entitlements/{id} with its status and disabled_reason: the same access
+        rules and transition table, processed independently, each with its own Audit Event and webhooks.
+        Each item counts against PATCH /entitlements/{id}'s rate limit. The response is 200 with one
+        result per item, in request order; an item's status is what the PATCH would have returned. An
+        item that disables or revokes is refused (403 destructive_operation_restricted) for a
+        restrict_destructive key; the other items go ahead. See /api-reference/conventions/#bulk-operations.
+      x-substratal-phase: mvp
+      x-substratal-destructive: conditional
+      x-substratal-destructive-when: "an item's status becomes disabled or revoked"
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 25
+                  items:
+                    type: object
+                    required: [id, status]
+                    properties:
+                      id: { type: string }
+                      status: { $ref: "#/components/schemas/EntitlementStatus" }
+                      disabled_reason: { type: [string, "null"], maxLength: 255 }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: One result per item, in request order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkResults" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
   # ─────────────────────────── Roles & Permissions ───────────────────────────
 
   /permissions:
@@ -1405,11 +1813,21 @@ paths:
       operationId: roles.list
       tags: [Roles & Permissions]
       summary: List Roles
+      description: >-
+        Any authenticated caller; each sees only the Roles visible to it. Platform Roles are
+        visible to Users holding any platform permission and to platform keys. An Application's
+        Roles are visible to platform roles.manage holders, the Application's own key, and the
+        Application's owner (its owner_user_id, or any active org_admin of its
+        owner_organization_id), with no platform permission needed. An owner sees only the Roles
+        of Applications they own: never another Application's, and never platform Roles unless
+        they also hold a platform permission. A scope the caller can't see returns an empty page,
+        not an error.
       x-substratal-phase: mvp
       parameters:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: scope, in: query, description: "'platform' or an application_id", schema: { type: string } }
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -1465,6 +1883,17 @@ paths:
       operationId: roles.update
       tags: [Roles & Permissions]
       summary: Change a Role's permissions or description
+      description: >-
+        An app Role may be changed by platform roles.manage, the Application's own key holding
+        roles.manage, or the Application's owner (its owner_user_id, or any active org_admin of
+        its owner_organization_id) with no platform permission needed. Its permissions must be
+        keys its own Application declares; a platform key, another Application's key, or an
+        undeclared key returns 422 unknown_permission. A platform Role needs platform
+        roles.manage, and every permission it grants must be one the caller holds (403
+        role_escalation_forbidden); seed Roles can't be changed (403 seed_role_immutable). A
+        Role the caller can't see (another Application's, or a platform Role for a caller with
+        no platform permission) returns 404 role_not_found; one it can see but not change
+        returns 403 forbidden.
       x-substratal-phase: mvp
       x-substratal-destructive: conditional
       x-substratal-destructive-when: "permissions shrink"
@@ -1488,6 +1917,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Role" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
     delete:
@@ -1535,7 +1965,13 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
       tags: [Roles & Permissions]
       summary: Assign a Role (idempotent — 200 if already held)
+      description: >-
+        Assigning a platform Role that grants a permission to a User without
+        MFA succeeds, but the Role takes effect only once they enroll TOTP;
+        the response's mfa_enrollment_required says so (Auth → Staff MFA).
       x-substratal-phase: mvp
+      x-substratal-step-up: conditional
+      x-substratal-step-up-when: "the Role is a platform Role"
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
         "200":
@@ -1558,6 +1994,8 @@ paths:
       summary: Remove a Role assignment (idempotent)
       x-substratal-phase: mvp
       x-substratal-destructive: always
+      x-substratal-step-up: conditional
+      x-substratal-step-up-when: "the Role is a platform Role"
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
         "204": { description: Removed }
@@ -1596,6 +2034,7 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: status, in: query, schema: { type: string, enum: [active, suspended] } }
         - { name: q, in: query, schema: { type: string } }
       responses:
@@ -1691,6 +2130,7 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: role, in: query, schema: { $ref: "#/components/schemas/OrganizationMemberRole" } }
         - { name: membership_status, in: query, schema: { $ref: "#/components/schemas/OrganizationMembershipStatus" } }
         - { name: q, in: query, schema: { type: string } }
@@ -2053,6 +2493,40 @@ paths:
 
   # ───────────────────────────── Billing ─────────────────────────────
 
+  /subscriptions:
+    get:
+      operationId: billing.listSubscriptions
+      tags: [Billing]
+      summary: List every subscriber's subscription (billing.manage)
+      description: >-
+        Requires billing.manage. Every User's and Organization's subscription in the caller's mode,
+        most recently updated first, with the subscriber's email or name for display. Revenue and
+        invoices stay in Stripe.
+      x-substratal-phase: phase2
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
+        - name: status
+          in: query
+          description: "Subscriptions in any of these statuses. Repeatable."
+          style: form
+          explode: true
+          schema: { type: array, items: { $ref: "#/components/schemas/SubscriptionStatus" }, maxItems: 8 }
+        - { name: subscriber_type, in: query, schema: { type: string, enum: [user, organization] } }
+        - { name: cancel_at_period_end, in: query, schema: { type: boolean } }
+        - { name: current_period_end_before, in: query, description: "Subscriptions whose current period ends before this time.", schema: { type: string, format: date-time } }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: A page of subscriptions
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SubscriptionPage" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
   /users/{id}/subscription:
     parameters:
       - $ref: "#/components/parameters/UserIdOrMe"
@@ -2096,6 +2570,31 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /users/me/billing/checkout-sessions/{session_id}/confirm:
+    parameters:
+      - { name: session_id, in: path, required: true, schema: { type: string }, description: "The cs_… id Stripe puts in success_url's session_id." }
+    post:
+      operationId: billing.confirmUserCheckoutSession
+      tags: [Billing]
+      summary: Sync your subscription from a returning Checkout, without waiting for the webhook (User token)
+      description: >-
+        Call it when the person lands on success_url. It reads the Checkout Session from Stripe and,
+        if it's complete, applies the subscription at once (the same sync the Stripe webhook runs), then
+        returns what GET /users/me/subscription would. An open or expired session changes nothing.
+        Idempotent. 404 checkout_session_not_found if the session isn't this User's.
+      x-substratal-phase: phase2
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "200":
+          description: The User's plan and individual subscription, after the sync
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserSubscription" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
         "503": { $ref: "#/components/responses/ServiceUnavailable" }
 
   /users/me/billing/portal-sessions:
@@ -2208,6 +2707,33 @@ paths:
         "422": { $ref: "#/components/responses/Unprocessable" }
         "503": { $ref: "#/components/responses/ServiceUnavailable" }
 
+  /organizations/{id}/billing/checkout-sessions/{session_id}/confirm:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: session_id, in: path, required: true, schema: { type: string }, description: "The cs_… id Stripe puts in success_url's session_id." }
+    post:
+      operationId: billing.confirmOrganizationCheckoutSession
+      tags: [Billing]
+      summary: Sync the Organization's subscription from a returning Checkout (org admin, User token)
+      description: >-
+        The Organization form of billing.confirmUserCheckoutSession: returns what
+        GET /organizations/{id}/subscription would, after the sync.
+      x-substratal-phase: phase2
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      responses:
+        "200":
+          description: The Organization's plan and subscription, after the sync
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrganizationSubscription" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
   /organizations/{id}/billing/portal-sessions:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string } }
@@ -2247,6 +2773,7 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: target_user_id, in: query, schema: { type: string } }
         - { name: target_type, in: query, schema: { $ref: "#/components/schemas/AuditTargetType" } }
         - { name: target_id, in: query, schema: { type: string } }
@@ -2260,6 +2787,10 @@ paths:
         - { name: application_id, in: query, schema: { type: string } }
         - { name: organization_id, in: query, schema: { type: string } }
         - { name: tenant_id, in: query, schema: { type: string } }
+        - name: request_id
+          in: query
+          description: "Events written by one request: the X-Request-Id it sent or was given. Exact match."
+          schema: { type: string, maxLength: 128 }
         - { name: since, in: query, schema: { type: string, format: date-time } }
         - { name: until, in: query, schema: { type: string, format: date-time } }
       responses:
@@ -2274,6 +2805,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/AuditEventPage" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
 
   /audit-events/{id}:
     parameters:
@@ -2344,6 +2876,78 @@ paths:
               schema: { $ref: "#/components/schemas/AuditExport" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  # ───────────────────────────── Usage & stats ─────────────────────────────
+
+  /usage:
+    get:
+      operationId: usage.get
+      tags: [Usage & stats]
+      summary: Request counts, errors, and latency per day, week, or month
+      description: >-
+        From a daily rollup of the request log, refreshed hourly: the current UTC day covers up to
+        the last complete hour. Buckets are UTC; week is ISO (Monday start); period is the bucket's
+        first day, so the buckets at either end of the range may be partial. Rows are in the
+        caller's mode. Platform operations.view sees every row. An app-confined API Key sees only
+        its own Application's rows, and an Application's owner sees only that Application's rows by
+        passing application_id; both are forced. Anyone else gets 403.
+      x-substratal-phase: phase3
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - name: since
+          in: query
+          description: "First day included (UTC). Default: 30 days before until."
+          schema: { type: string, format: date }
+        - name: until
+          in: query
+          description: "First day not included (UTC). Default: tomorrow, so today is included. At most 13 months after since."
+          schema: { type: string, format: date }
+        - name: granularity
+          in: query
+          schema: { type: string, enum: [day, week, month], default: day }
+        - name: group_by
+          in: query
+          description: "Split rows by these dimensions. Repeat for several. Without it, one row per period."
+          style: form
+          explode: true
+          schema: { type: array, items: { type: string, enum: [application, api_key, operation] } }
+        - { name: application_id, in: query, schema: { type: string } }
+        - { name: api_key_id, in: query, schema: { type: string } }
+        - { name: operation, in: query, description: "An operationId, such as users.list.", schema: { type: string } }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The usage report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsageReport" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /stats:
+    get:
+      operationId: stats.get
+      tags: [Usage & stats]
+      summary: Current counts for the console's home screen, in one call
+      description: >-
+        Live counts, grouped by status, computed at most once a minute per server instance
+        (generated_at says when). Every known status is present, with 0 when nothing has it.
+        Counts are in the caller's mode. Platform-wide with operations.view or users.list. With
+        tenant_id, the counts are that Tenant's only, and its owner may call it too; users,
+        subscriptions, and organizations are then null, since they don't belong to a Tenant.
+      x-substratal-phase: phase3
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - { name: tenant_id, in: query, schema: { type: string } }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The counts
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Stats" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   # ───────────────────────────── Webhooks ─────────────────────────────
 
   /webhooks:
@@ -2356,7 +2960,20 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: application_id, in: query, schema: { type: string } }
+        - name: status
+          in: query
+          description: "Subscriptions in any of these statuses. Repeatable."
+          style: form
+          explode: true
+          schema: { type: array, items: { type: string, enum: [healthy, unhealthy, disabled] }, maxItems: 3 }
+        - name: scope
+          in: query
+          description: >-
+            "platform" returns only platform-scoped subscriptions. Callers without webhooks.manage see none, so
+            they get an empty page. Can't be combined with application_id (400 invalid_request).
+          schema: { type: string, enum: [platform] }
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
         "200":
@@ -2513,6 +3130,7 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: event_id, in: query, schema: { type: string } }
         - { name: status, in: query, schema: { type: string, enum: [pending, succeeded, failed] } }
         - { name: since, in: query, schema: { type: string, format: date-time } }
@@ -2528,6 +3146,59 @@ paths:
                   - type: object
                     properties:
                       data: { type: array, items: { $ref: "#/components/schemas/WebhookDelivery" } }
+
+  /webhook-deliveries:
+    get:
+      operationId: webhooks.listAllDeliveries
+      tags: [Webhooks]
+      summary: Delivery attempts across every subscription visible to the caller (30-day log)
+      description: >-
+        Scoped like GET /webhooks: webhooks.manage sees every subscription's deliveries, an Application's
+        owner and its app keys see only that Application's. A caller with no visible subscriptions gets an
+        empty page. Newest first.
+      x-substratal-phase: phase2
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
+        - { name: status, in: query, schema: { type: string, enum: [pending, succeeded, failed] } }
+        - { name: since, in: query, description: "Deliveries created at or after this time.", schema: { type: string, format: date-time } }
+        - { name: until, in: query, description: "Deliveries created before this time.", schema: { type: string, format: date-time } }
+        - { name: application_id, in: query, schema: { type: string } }
+        - { name: subscription_id, in: query, schema: { type: string } }
+        - { name: event_type, in: query, schema: { $ref: "#/components/schemas/WebhookEvent" } }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: A page of deliveries
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WebhookDeliveryPage" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /webhooks/{id}/deliveries/{deliveryId}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+      - { name: deliveryId, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: webhooks.getDelivery
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      tags: [Webhooks]
+      summary: Fetch one delivery attempt (30-day log)
+      description: >-
+        Visible to whoever can read GET /webhooks/{id}/deliveries. 404 delivery_not_found when the
+        delivery isn't on that subscription or is older than the 30-day log.
+      x-substratal-phase: phase2
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The delivery
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WebhookDelivery" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /webhooks/{id}/deliveries/{deliveryId}/redeliver:
     parameters:
@@ -2546,6 +3217,34 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
 
   # ───────────────────────────── Notifications ─────────────────────────────
+
+  /push-credentials:
+    get:
+      operationId: pushCredentials.listAll
+      tags: [Notifications]
+      summary: List push credentials across Applications (applications.manage, or an owner's own)
+      description: >-
+        applications.manage sees every Application's credentials. A User without it sees only the
+        credentials of Applications they own (owner_user_id, or an active org_admin of the owning
+        Organization); owning none is an empty list. Any other API Key, including an app key, gets 403
+        and uses GET /applications/{id}/push-credentials instead. Never returns key material. Newest first.
+      x-substratal-phase: phase2
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
+        - { name: status, in: query, schema: { type: string, enum: [active, failed, disabled] } }
+        - { name: provider, in: query, schema: { $ref: "#/components/schemas/PushProvider" } }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: A page of push credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PushCredentialPage" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
 
   /applications/{id}/push-credentials:
     parameters:
@@ -2974,9 +3673,11 @@ paths:
         - $ref: "#/components/parameters/ApiVersion"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Include"
         - { name: scope, in: query, schema: { type: string } }
         - { name: mode, in: query, schema: { type: string, enum: [live, test] } }
         - { name: intended_use, in: query, schema: { type: string, enum: [service, agent] } }
+        - { name: q, in: query, description: "Case-insensitive prefix match on name", schema: { type: string } }
         - { name: include_inactive, in: query, description: "Include revoked and expired keys", schema: { type: boolean, default: false } }
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -2992,6 +3693,8 @@ paths:
       tags: [API Keys]
       summary: Create a key (api_keys.manage, or the Application's owner for an app-scoped key)
       x-substratal-phase: mvp
+      x-substratal-step-up: conditional
+      x-substratal-step-up-when: "scope is platform"
       requestBody:
         required: true
         content:
@@ -3027,10 +3730,12 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
     patch:
       operationId: apiKeys.update
+      x-substratal-step-up: conditional
+      x-substratal-step-up-when: "rate_limit_per_minute is sent"
       parameters:
         - $ref: "#/components/parameters/ApiVersion"
       tags: [API Keys]
-      summary: Change name, permissions, or restrict_destructive
+      summary: Change name, permissions, restrict_destructive, or rate_limit_per_minute (api_keys.manage only)
       x-substratal-phase: mvp
       x-substratal-destructive: conditional
       x-substratal-destructive-when: "restrict_destructive set to false"
@@ -3044,6 +3749,11 @@ paths:
                 name: { type: string, maxLength: 100 }
                 permissions: { type: array, items: { type: string } }
                 restrict_destructive: { type: boolean }
+                rate_limit_per_minute:
+                  type: [integer, "null"]
+                  minimum: 1
+                  maximum: 10000
+                  description: Platform api_keys.manage only (403 forbidden otherwise). Null restores the platform default.
       responses:
         "400": { $ref: "#/components/responses/BadRequest" }
         "200":
@@ -3086,6 +3796,79 @@ paths:
               schema: { $ref: "#/components/schemas/ApiKeyWithSecret" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  # ───────────────────────────── Platform ─────────────────────────────
+
+  /platform/settings:
+    get:
+      operationId: platform.getSettings
+      tags: [Platform]
+      summary: Read the platform's runtime switches and client feature flags
+      description: >-
+        Authentication is optional. Without a Bearer token: signup_open and
+        announcement, for live mode, or for test mode with test_mode=true.
+        With one: the caller's own mode, plus client_flags. With
+        operations.view, also read_only and updated_at, read fresh; everyone
+        else may get a copy up to 30 seconds old. ETag is the row's version.
+      security:
+        - {}
+        - bearerAuth: []
+      x-substratal-phase: phase3
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - name: test_mode
+          in: query
+          required: false
+          description: "Unauthenticated callers only: read test mode's settings. An authenticated caller always reads its own mode."
+          schema: { type: boolean, default: false }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The settings visible to this caller
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformSettings" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+    patch:
+      operationId: platform.updateSettings
+      tags: [Platform]
+      summary: Change the platform's runtime switches and client feature flags (operations.manage)
+      description: >-
+        Changes the settings of the caller's mode. If-Match is required (400
+        if_match_required without it). client_flags is merged one level deep,
+        and a flag sent as null is removed. announcement is replaced, and null
+        clears it. Writes platform.settings_updated with before and after.
+        Other API instances pick the change up within 30 seconds. It stays
+        callable while read_only is on, so the freeze can always be lifted.
+      x-substratal-phase: phase3
+      x-substratal-step-up: always
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+        - name: If-Match
+          in: header
+          required: true
+          description: The ETag from a prior read. Missing is 400 if_match_required; a mismatch is 409 version_conflict.
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlatformSettingsWrite" }
+      responses:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200":
+          description: The updated settings, as an operations.view caller sees them
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformSettings" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3120,6 +3903,14 @@ components:
       name: cursor
       in: query
       schema: { type: string }
+    Include:
+      name: include
+      in: query
+      description: >-
+        `total` adds `page.total` and `page.total_capped`: the number of rows
+        matching the current filters across every page, counted up to 10,000
+        (Conventions → Pagination). Omitted unless requested.
+      schema: { type: string, enum: [total] }
     IdempotencyKey:
       name: Idempotency-Key
       in: header
@@ -3161,7 +3952,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
     Forbidden:
-      description: "Authenticated but not permitted (forbidden, destructive_operation_restricted, entitlement_required, role_escalation_forbidden, …)"
+      description: "Authenticated but not permitted (forbidden, destructive_operation_restricted, entitlement_required, role_escalation_forbidden, mfa_enrollment_required, reauthentication_required, …)"
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -3219,6 +4010,46 @@ components:
                       code: { type: string }
               additionalProperties: true
 
+    BulkItemError:
+      type: object
+      description: The error object the single call would have returned, without the outer error envelope.
+      required: [code, message]
+      properties:
+        code: { type: string, example: user_protected }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+
+    BulkResults:
+      type: object
+      description: One result per requested item, in request order (Conventions → Bulk operations).
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required: [id, status]
+            properties:
+              id: { type: string, description: The item's id, as sent }
+              status: { type: integer, description: "The status the single call would have returned: 200 on success, otherwise the error's 4xx or 500" }
+              error: { $ref: "#/components/schemas/BulkItemError" }
+
+    BulkInviteResults:
+      type: object
+      description: One result per requested email, in request order (Conventions → Bulk operations).
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required: [email, status]
+            properties:
+              email: { type: string, description: The email, as sent }
+              status: { type: integer, description: "The status POST /users would have returned: 201 on success, otherwise the error's 4xx or 500" }
+              user_id: { type: string, description: The new User's id. Present only on 201. }
+              error: { $ref: "#/components/schemas/BulkItemError" }
+
     OAuthError:
       type: object
       required: [error]
@@ -3232,6 +4063,16 @@ components:
       properties:
         next_cursor: { type: [string, "null"] }
         has_more: { type: boolean }
+        total:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          description: >-
+            Only with `include=total`. Rows matching the current filters across
+            every page, ignoring `cursor`; 10000 when capped.
+        total_capped:
+          type: boolean
+          description: Only with `include=total`. True when there are more than 10,000 matching rows.
 
     PageEnvelope:
       type: object
@@ -3263,6 +4104,15 @@ components:
         session_id: { type: string }
         user_id: { type: string }
         email_verified: { type: boolean }
+
+    Reauthentication:
+      type: object
+      required: [token_type, access_token, expires_in, mfa_verified_at]
+      properties:
+        token_type: { type: string, enum: [Bearer] }
+        access_token: { type: string, description: "A new platform access token for the same session, carrying the updated mfa_verified_at claim." }
+        expires_in: { type: integer, example: 900 }
+        mfa_verified_at: { type: string, format: date-time, description: "When this session last proved a second factor: now." }
 
     MfaChallenge:
       type: object
@@ -3337,6 +4187,7 @@ components:
         pending_email: { type: [string, "null"], format: email }
         status: { $ref: "#/components/schemas/UserStatus" }
         mfa_enabled: { type: boolean }
+        mfa_enrollment_required: { type: boolean, description: "Staff (holding a platform Role that grants a permission) without TOTP. Once staff MFA is enforced, their sessions can only enroll, read themselves, change password, and log out (Auth → Staff MFA)." }
         signup_application_id: { type: [string, "null"] }
         test_mode: { type: boolean }
         created_at: { type: string, format: date-time }
@@ -3431,6 +4282,31 @@ components:
             locale: { type: string, readOnly: true, example: en-US, description: "Mirror of the global Settings locale; write it there." }
             updated_at: { type: string, format: date-time }
 
+    ImageUploadRequest:
+      type: object
+      required: [content_type, content_length]
+      properties:
+        content_type: { type: string, enum: [image/png, image/jpeg, image/webp] }
+        content_length: { type: integer, minimum: 1, description: "The file's size in bytes. At most 2097152 for an avatar, 1048576 for an icon." }
+
+    ImageUpload:
+      type: object
+      required: [id, url, fields, content_type, max_bytes, expires_at]
+      description: >-
+        A presigned POST. Send multipart/form-data to url with every entry of fields, then the
+        file as the last field, named file. The upload is accepted only with that content_type and
+        at most max_bytes, until expires_at.
+      properties:
+        id: { type: string, description: "The upload id (upl_…) to complete." }
+        url: { type: string, description: "Where to POST the form." }
+        fields:
+          type: object
+          additionalProperties: { type: string }
+          description: "Form fields to send unchanged, including key, Content-Type, policy, and signature."
+        content_type: { type: string, enum: [image/png, image/jpeg, image/webp] }
+        max_bytes: { type: integer }
+        expires_at: { type: string, format: date-time }
+
     AppProfile:
       type: object
       properties:
@@ -3479,7 +4355,7 @@ components:
 
     ApplicationReviewStatus:
       type: string
-      enum: [approved, pending_review, rejected, suspended]
+      enum: [approved, pending_review, rejected, suspended, retired]
 
     ApplicationPermission:
       type: object
@@ -3490,11 +4366,19 @@ components:
 
     ApplicationAccessTier:
       type: string
-      enum: [free, standard]
-      description: "Which plan unlocks the Application: free for every User, standard for Users covered by a Standard subscription. Set by applications.manage; defaults to standard."
+      enum: [free, standard, restricted]
+      description: >-
+        Who gets in without a grant. free: every User. standard: Users covered by a Standard
+        subscription; first_party (Substratal's own) Applications only. restricted: only the people
+        the developer grants Entitlements to, from their own billing or none. A first-party
+        Application defaults to standard and only applications.manage changes its tier. Any other
+        Application defaults to restricted, and its owner chooses free or restricted while it's
+        approved or pending_review (409 application_not_available otherwise, at most 10 changes a
+        day). standard on one that isn't first-party is 422 access_tier_reserved.
 
     ApplicationSummary:
       type: object
+      required: [id, slug, name, description, icon_url, visibility, access_tier, review_status, review_requested_at, owner_user_id, owner_organization_id, holder_count]
       properties:
         id: { type: string }
         slug: { type: string }
@@ -3504,6 +4388,10 @@ components:
         visibility: { $ref: "#/components/schemas/ApplicationVisibility" }
         access_tier: { $ref: "#/components/schemas/ApplicationAccessTier" }
         review_status: { $ref: "#/components/schemas/ApplicationReviewStatus" }
+        review_requested_at: { type: [string, "null"], format: date-time, readOnly: true, description: "When the Application last entered pending_review. See Application." }
+        owner_user_id: { type: [string, "null"] }
+        owner_organization_id: { type: [string, "null"] }
+        holder_count: { type: integer, minimum: 0, description: "Active Entitlements for the Application; a User grant and an Organization grant count once each" }
 
     ApplicationSummaryPage:
       allOf:
@@ -3529,6 +4417,7 @@ components:
         default_app_role: { type: [string, "null"] }
         visibility: { $ref: "#/components/schemas/ApplicationVisibility" }
         access_tier: { $ref: "#/components/schemas/ApplicationAccessTier" }
+        first_party: { type: boolean, default: false, description: "Substratal's own Application. Only applications.manage sets it, and only a first-party Application can be access_tier standard. Staff-created customer Applications (concierge onboarding) aren't first-party." }
         owner_user_id: { type: [string, "null"] }
         owner_organization_id: { type: [string, "null"] }
         review_status: { $ref: "#/components/schemas/ApplicationReviewStatus" }
@@ -3548,6 +4437,7 @@ components:
               properties:
                 stale_override_counts: { type: object, additionalProperties: { type: integer } }
             self_registered: { type: boolean, readOnly: true, description: "true when a developer submitted it themselves, not staff. A self-registered Application must use the hosted sign-in flow (POST /auth/app-tokens returns 403 embedded_login_not_allowed), and only applications.manage can turn on receives_platform_notifications for it." }
+            review_requested_at: { type: [string, "null"], format: date-time, readOnly: true, description: "When the Application last entered pending_review. See Application." }
             test_mode: { type: boolean }
             created_at: { type: string, format: date-time }
             updated_at: { type: string, format: date-time }
@@ -3658,6 +4548,7 @@ components:
         assigned_at: { type: [string, "null"], format: date-time }
         assigned_by: { oneOf: [ { $ref: "#/components/schemas/Actor" }, { type: "null" } ] }
         implicit: { type: boolean }
+        mfa_enrollment_required: { type: boolean, description: "On POST /users/{id}/roles/{roleId} only: the User is now staff but has no TOTP, so their platform Roles take effect once they enroll (Auth → Staff MFA)." }
 
     UserRoleAssignmentPage:
       allOf:
@@ -3844,6 +4735,21 @@ components:
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
+    SubscriptionListItem:
+      allOf:
+        - $ref: "#/components/schemas/Subscription"
+        - type: object
+          properties:
+            user_email: { type: [string, "null"], format: email, description: "Individual subscriptions: the User's email, for display." }
+            organization_name: { type: [string, "null"], description: "Organization subscriptions: the Organization's name, for display." }
+
+    SubscriptionPage:
+      allOf:
+        - $ref: "#/components/schemas/PageEnvelope"
+        - type: object
+          properties:
+            data: { type: array, items: { $ref: "#/components/schemas/SubscriptionListItem" } }
+
     UserSubscription:
       type: object
       properties:
@@ -3901,6 +4807,10 @@ components:
         - user.mfa_reset
         - user.sessions_revoked
         - audit.exported
+        - application.retired
+        - application.deleted
+        - profile.avatar_changed
+        - application.icon_changed
         - entitlement.granted
         - entitlement.disabled
         - entitlement.revoked
@@ -3945,10 +4855,55 @@ components:
         - push_credential.updated
         - push_credential.deleted
         - device.deleted
+        - platform.settings_updated
 
     AuditTargetType:
       type: string
-      enum: [user, entitlement, role, role_assignment, application, organization, subscription, tenant, tier_change_request, api_key, webhook, push_credential, device, audit_export]
+      enum: [user, entitlement, role, role_assignment, application, organization, subscription, tenant, tier_change_request, api_key, webhook, push_credential, device, audit_export, platform_settings]
+
+    PlatformAnnouncement:
+      type: object
+      required: [text, level]
+      additionalProperties: false
+      properties:
+        text: { type: string, minLength: 1, maxLength: 500 }
+        level: { type: string, enum: [info, warning, critical] }
+
+    PlatformSettings:
+      type: object
+      description: >-
+        signup_open and announcement are always present. client_flags needs
+        an authenticated caller; read_only and updated_at need
+        operations.view.
+      required: [signup_open, announcement]
+      properties:
+        signup_open: { type: boolean, description: "false closes POST /auth/signup (403 signup_closed). Invitations still work." }
+        announcement:
+          description: A banner for clients to show, or null.
+          oneOf:
+            - $ref: "#/components/schemas/PlatformAnnouncement"
+            - type: "null"
+        client_flags:
+          type: object
+          description: Remote-configurable client feature flags, flag name to boolean. At most 100.
+          additionalProperties: { type: boolean }
+        read_only: { type: boolean, description: "true answers every non-GET from a caller without superadmin with 503 service_unavailable and Retry-After: 300. Sign-in, refresh, logout, session revocation, and token issuance stay open." }
+        updated_at: { type: string, format: date-time }
+
+    PlatformSettingsWrite:
+      type: object
+      properties:
+        signup_open: { type: boolean }
+        read_only: { type: boolean }
+        client_flags:
+          type: object
+          description: "Merged one level deep: each flag sent replaces that flag, and a flag sent as null is removed. Names match ^[a-z][a-z0-9_]{0,63}$; at most 100 after the merge."
+          additionalProperties: { type: [boolean, "null"] }
+        announcement:
+          description: Replaces the announcement; null clears it.
+          oneOf:
+            - $ref: "#/components/schemas/PlatformAnnouncement"
+            - type: "null"
 
     AuditExportRequest:
       type: object
@@ -3964,6 +4919,7 @@ components:
         application_id: { type: string }
         organization_id: { type: string }
         tenant_id: { type: string }
+        request_id: { type: string, maxLength: 128 }
         since: { type: string, format: date-time }
         until: { type: string, format: date-time }
 
@@ -3982,6 +4938,119 @@ components:
         completed_at: { type: [string, "null"], format: date-time }
         expires_at: { type: string, format: date-time, description: "When the file and this record are deleted: 7 days after the request." }
         test_mode: { type: boolean }
+
+    UsageReport:
+      type: object
+      required: [since, until, granularity, group_by, data]
+      properties:
+        since: { type: string, format: date }
+        until: { type: string, format: date }
+        granularity: { type: string, enum: [day, week, month] }
+        group_by: { type: array, items: { type: string, enum: [application, api_key, operation] } }
+        data:
+          type: array
+          description: "Oldest period first, then by the grouped dimensions. Periods and groups with no requests are omitted."
+          items: { $ref: "#/components/schemas/UsageRow" }
+
+    UsageRow:
+      type: object
+      required: [period, requests, errors_4xx, errors_5xx, latency_ms_avg, latency_ms_max]
+      properties:
+        period: { type: string, format: date, description: "The bucket's first day (UTC)." }
+        application_id: { type: [string, "null"], description: "Only with group_by=application. null for requests that didn't resolve to exactly one Application." }
+        api_key_id: { type: [string, "null"], description: "Only with group_by=api_key. null for requests made without an API Key." }
+        operation: { type: string, description: "Only with group_by=operation. The operationId." }
+        requests: { type: integer }
+        errors_4xx: { type: integer }
+        errors_5xx: { type: integer }
+        latency_ms_avg: { type: integer, description: "Mean latency, rounded to the millisecond." }
+        latency_ms_max: { type: integer }
+
+    Stats:
+      type: object
+      required: [tenant_id, generated_at, users, applications, entitlements, subscriptions, organizations,
+                 webhook_subscriptions, push_credentials, tier_change_requests]
+      properties:
+        tenant_id: { type: [string, "null"], description: "The Tenant the counts are confined to, or null for platform-wide." }
+        generated_at: { type: string, format: date-time, description: "When these counts were computed. At most a minute old." }
+        users:
+          description: "Users by status. null when tenant_id is set."
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [active, invited, suspended, deleted]
+              properties:
+                active: { type: integer }
+                invited: { type: integer }
+                suspended: { type: integer }
+                deleted: { type: integer }
+        applications:
+          type: object
+          required: [by_review_status, by_access_tier]
+          properties:
+            by_review_status:
+              type: object
+              required: [approved, pending_review, rejected, suspended, retired]
+              properties:
+                approved: { type: integer }
+                pending_review: { type: integer }
+                rejected: { type: integer }
+                suspended: { type: integer }
+                retired: { type: integer }
+            by_access_tier:
+              type: object
+              required: [free, standard]
+              properties:
+                free: { type: integer }
+                standard: { type: integer }
+        entitlements:
+          type: object
+          description: Entitlements by status.
+          required: [active, disabled, expired, revoked]
+          properties:
+            active: { type: integer }
+            disabled: { type: integer }
+            expired: { type: integer }
+            revoked: { type: integer }
+        subscriptions:
+          description: "Covering subscriptions (active, trialing, or past_due) by subscriber type. null when tenant_id is set."
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [user, organization]
+              properties:
+                user: { type: integer }
+                organization: { type: integer }
+        organizations:
+          description: "Organizations by status. null when tenant_id is set."
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [active, suspended]
+              properties:
+                active: { type: integer }
+                suspended: { type: integer }
+        webhook_subscriptions:
+          type: object
+          description: Webhook subscriptions by status.
+          required: [healthy, unhealthy, disabled]
+          properties:
+            healthy: { type: integer }
+            unhealthy: { type: integer }
+            disabled: { type: integer }
+        push_credentials:
+          type: object
+          description: Applications' push credentials by status.
+          required: [active, failed, disabled]
+          properties:
+            active: { type: integer }
+            failed: { type: integer }
+            disabled: { type: integer }
+        tier_change_requests:
+          type: object
+          required: [open]
+          properties:
+            open: { type: integer, description: "Requests that are pending, scheduled, or in_progress." }
 
     ScimToken:
       type: object
@@ -4069,6 +5138,7 @@ components:
         - user_deleted
         - test_user_expired
         - test_user_extended
+        - application_retired
 
     WebhookEventEnvelope:
       type: object
@@ -4127,6 +5197,21 @@ components:
         next_retry_at: { type: [string, "null"], format: date-time }
         created_at: { type: string, format: date-time }
 
+    WebhookDeliveryListItem:
+      allOf:
+        - $ref: "#/components/schemas/WebhookDelivery"
+        - type: object
+          properties:
+            subscription_id: { type: string }
+            scope: { type: string, description: "The subscription's scope: an application_id, or 'platform'." }
+
+    WebhookDeliveryPage:
+      allOf:
+        - $ref: "#/components/schemas/PageEnvelope"
+        - type: object
+          properties:
+            data: { type: array, items: { $ref: "#/components/schemas/WebhookDeliveryListItem" } }
+
     # ── Notifications ──
     PushProvider:
       type: string
@@ -4163,7 +5248,7 @@ components:
         id: { type: string, description: "pcr_…" }
         application_id: { type: string }
         provider: { $ref: "#/components/schemas/PushProvider" }
-        status: { type: string, enum: [active, failed] }
+        status: { type: string, enum: [active, failed, disabled], description: "disabled: the Application was retired." }
         team_id: { type: string, description: "apns" }
         key_id: { type: string, description: "apns" }
         topic: { type: string, description: "apns" }
@@ -4183,13 +5268,20 @@ components:
       properties:
         data: { type: array, maxItems: 3, items: { $ref: "#/components/schemas/PushCredential" } }
 
+    PushCredentialPage:
+      allOf:
+        - $ref: "#/components/schemas/PageEnvelope"
+        - type: object
+          properties:
+            data: { type: array, items: { $ref: "#/components/schemas/PushCredential" } }
+
     DeviceStatus:
       type: string
       enum: [active, inactive]
 
     DeviceInactiveReason:
       type: string
-      enum: [unregistered, session_revoked, user_suspended, user_deleted, test_user_expired, stale, limit, credential_removed]
+      enum: [unregistered, session_revoked, user_suspended, user_deleted, test_user_expired, stale, limit, credential_removed, application_retired]
 
     WebPushSubscription:
       type: object
@@ -4413,6 +5505,15 @@ components:
           type: boolean
           description: "When true, every operation marked x-substratal-destructive is rejected with 403 destructive_operation_restricted."
         expires_at: { type: [string, "null"], format: date-time }
+        rate_limit_per_minute:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 10000
+          description: >-
+            Replaces the default 100 requests/minute for this key. Null (the
+            default) means the platform default. Operations with their own
+            ceiling keep it. Only platform api_keys.manage may send it; anyone
+            else gets 403 forbidden.
 
     ApiKey:
       allOf:

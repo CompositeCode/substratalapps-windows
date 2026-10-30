@@ -4,6 +4,7 @@ using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
 using Substratal.Hub.Core.Api.Generated.Models;
+using Substratal.Hub.Core.Api.Generated.Organizations.Item.Billing.CheckoutSessions.Item;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,6 +18,18 @@ namespace Substratal.Hub.Core.Api.Generated.Organizations.Item.Billing.CheckoutS
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class CheckoutSessionsRequestBuilder : BaseRequestBuilder
     {
+        /// <summary>Gets an item from the Substratal.Hub.Core.Api.Generated.organizations.item.billing.checkoutSessions.item collection</summary>
+        /// <param name="position">The cs_… id Stripe puts in success_url&apos;s session_id.</param>
+        /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Organizations.Item.Billing.CheckoutSessions.Item.WithSession_ItemRequestBuilder"/></returns>
+        public global::Substratal.Hub.Core.Api.Generated.Organizations.Item.Billing.CheckoutSessions.Item.WithSession_ItemRequestBuilder this[string position]
+        {
+            get
+            {
+                var urlTplParams = new Dictionary<string, object>(PathParameters);
+                urlTplParams.Add("session_id", position);
+                return new global::Substratal.Hub.Core.Api.Generated.Organizations.Item.Billing.CheckoutSessions.Item.WithSession_ItemRequestBuilder(urlTplParams, RequestAdapter);
+            }
+        }
         /// <summary>
         /// Instantiates a new <see cref="global::Substratal.Hub.Core.Api.Generated.Organizations.Item.Billing.CheckoutSessions.CheckoutSessionsRequestBuilder"/> and sets the default values.
         /// </summary>

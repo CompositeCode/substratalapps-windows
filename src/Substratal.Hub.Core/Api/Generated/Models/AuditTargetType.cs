@@ -64,5 +64,9 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         #pragma warning disable CS1591
         Audit_export,
         #pragma warning restore CS1591
+        [EnumMember(Value = "platform_settings")]
+        #pragma warning disable CS1591
+        Platform_settings,
+        #pragma warning restore CS1591
     }
 }

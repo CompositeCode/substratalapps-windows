@@ -58,6 +58,33 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.ErasureRequests.Current
             await RequestAdapter.SendNoContentAsync(requestInfo, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
+        /// Self, or users.manage. Returns the erasure request while it&apos;s scheduled; 404 erasure_not_scheduled when none is pending (never requested, cancelled, or completed). A soft-deleted User 404s (user_not_found) for anyone without users.manage, as on cancel.
+        /// </summary>
+        /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.ErasureRequest"/></returns>
+        /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 400 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 403 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 404 status code</exception>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public async Task<global::Substratal.Hub.Core.Api.Generated.Models.ErasureRequest?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#nullable restore
+#else
+        public async Task<global::Substratal.Hub.Core.Api.Generated.Models.ErasureRequest> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#endif
+            var requestInfo = ToGetRequestInformation(requestConfiguration);
+            var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
+            {
+                { "400", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "403", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "404", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+            };
+            return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.ErasureRequest>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.ErasureRequest.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
         /// Cancel a scheduled erasure inside its 7-day window (users.manage)
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
@@ -72,6 +99,25 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.ErasureRequests.Current
         {
 #endif
             var requestInfo = new RequestInformation(Method.DELETE, UrlTemplate, PathParameters);
+            requestInfo.Configure(requestConfiguration);
+            requestInfo.Headers.TryAdd("Accept", "application/json");
+            return requestInfo;
+        }
+        /// <summary>
+        /// Self, or users.manage. Returns the erasure request while it&apos;s scheduled; 404 erasure_not_scheduled when none is pending (never requested, cancelled, or completed). A soft-deleted User 404s (user_not_found) for anyone without users.manage, as on cancel.
+        /// </summary>
+        /// <returns>A <see cref="RequestInformation"/></returns>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        {
+#nullable restore
+#else
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        {
+#endif
+            var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json");
             return requestInfo;

@@ -65,6 +65,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             get { return BackingStore?.Get<bool?>("implicit"); }
             set { BackingStore?.Set("implicit", value); }
         }
+        /// <summary>On POST /users/{id}/roles/{roleId} only: the User is now staff but has no TOTP, so their platform Roles take effect once they enroll (Auth → Staff MFA).</summary>
+        public bool? MfaEnrollmentRequired
+        {
+            get { return BackingStore?.Get<bool?>("mfa_enrollment_required"); }
+            set { BackingStore?.Set("mfa_enrollment_required", value); }
+        }
         /// <summary>The role_id property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -127,6 +133,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
                 { "assigned_at", n => { AssignedAt = n.GetDateTimeOffsetValue(); } },
                 { "assigned_by", n => { AssignedBy = n.GetObjectValue<global::Substratal.Hub.Core.Api.Generated.Models.Actor>(global::Substratal.Hub.Core.Api.Generated.Models.Actor.CreateFromDiscriminatorValue); } },
                 { "implicit", n => { Implicit = n.GetBoolValue(); } },
+                { "mfa_enrollment_required", n => { MfaEnrollmentRequired = n.GetBoolValue(); } },
                 { "role_id", n => { RoleId = n.GetStringValue(); } },
                 { "user_id", n => { UserId = n.GetStringValue(); } },
             };
@@ -142,6 +149,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             writer.WriteDateTimeOffsetValue("assigned_at", AssignedAt);
             writer.WriteObjectValue<global::Substratal.Hub.Core.Api.Generated.Models.Actor>("assigned_by", AssignedBy);
             writer.WriteBoolValue("implicit", Implicit);
+            writer.WriteBoolValue("mfa_enrollment_required", MfaEnrollmentRequired);
             writer.WriteStringValue("role_id", RoleId);
             writer.WriteStringValue("user_id", UserId);
             writer.WriteAdditionalData(AdditionalData);

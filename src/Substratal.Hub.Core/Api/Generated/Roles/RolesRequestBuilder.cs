@@ -35,7 +35,7 @@ namespace Substratal.Hub.Core.Api.Generated.Roles
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public RolesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/roles{?cursor*,limit*,scope*}", pathParameters)
+        public RolesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/roles{?cursor*,include*,limit*,scope*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,11 +43,11 @@ namespace Substratal.Hub.Core.Api.Generated.Roles
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public RolesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/roles{?cursor*,limit*,scope*}", rawUrl)
+        public RolesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/roles{?cursor*,include*,limit*,scope*}", rawUrl)
         {
         }
         /// <summary>
-        /// List Roles
+        /// Any authenticated caller; each sees only the Roles visible to it. Platform Roles are visible to Users holding any platform permission and to platform keys. An Application&apos;s Roles are visible to platform roles.manage holders, the Application&apos;s own key, and the Application&apos;s owner (its owner_user_id, or any active org_admin of its owner_organization_id), with no platform permission needed. An owner sees only the Roles of Applications they own: never another Application&apos;s, and never platform Roles unless they also hold a platform permission. A scope the caller can&apos;t see returns an empty page, not an error.
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.RolePage"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -101,7 +101,7 @@ namespace Substratal.Hub.Core.Api.Generated.Roles
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.Role>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.Role.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// List Roles
+        /// Any authenticated caller; each sees only the Roles visible to it. Platform Roles are visible to Users holding any platform permission and to platform keys. An Application&apos;s Roles are visible to platform roles.manage holders, the Application&apos;s own key, and the Application&apos;s owner (its owner_user_id, or any active org_admin of its owner_organization_id), with no platform permission needed. An owner sees only the Roles of Applications they own: never another Application&apos;s, and never platform Roles unless they also hold a platform permission. A scope the caller can&apos;t see returns an empty page, not an error.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -151,7 +151,7 @@ namespace Substratal.Hub.Core.Api.Generated.Roles
             return new global::Substratal.Hub.Core.Api.Generated.Roles.RolesRequestBuilder(rawUrl, RequestAdapter);
         }
         /// <summary>
-        /// List Roles
+        /// Any authenticated caller; each sees only the Roles visible to it. Platform Roles are visible to Users holding any platform permission and to platform keys. An Application&apos;s Roles are visible to platform roles.manage holders, the Application&apos;s own key, and the Application&apos;s owner (its owner_user_id, or any active org_admin of its owner_organization_id), with no platform permission needed. An owner sees only the Roles of Applications they own: never another Application&apos;s, and never platform Roles unless they also hold a platform permission. A scope the caller can&apos;t see returns an empty page, not an error.
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class RolesRequestBuilderGetQueryParameters 
@@ -169,6 +169,9 @@ namespace Substratal.Hub.Core.Api.Generated.Roles
             public string Cursor { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Roles.GetIncludeQueryParameterType? Include { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("limit")]
             public int? Limit { get; set; }

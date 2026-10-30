@@ -34,6 +34,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("id", value); }
         }
 #endif
+        /// <summary>When the Application last entered pending_review. See Application.</summary>
+        public DateTimeOffset? ReviewRequestedAt
+        {
+            get { return BackingStore?.Get<DateTimeOffset?>("review_requested_at"); }
+            set { BackingStore?.Set("review_requested_at", value); }
+        }
         /// <summary>true when a developer submitted it themselves, not staff. A self-registered Application must use the hosted sign-in flow (POST /auth/app-tokens returns 403 embedded_login_not_allowed), and only applications.manage can turn on receives_platform_notifications for it.</summary>
         public bool? SelfRegistered
         {
@@ -104,6 +110,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             {
                 { "created_at", n => { CreatedAt = n.GetDateTimeOffsetValue(); } },
                 { "id", n => { Id = n.GetStringValue(); } },
+                { "review_requested_at", n => { ReviewRequestedAt = n.GetDateTimeOffsetValue(); } },
                 { "self_registered", n => { SelfRegistered = n.GetBoolValue(); } },
                 { "settings_schema_stats", n => { SettingsSchemaStats = n.GetObjectValue<global::Substratal.Hub.Core.Api.Generated.Models.Application_settings_schema_stats>(global::Substratal.Hub.Core.Api.Generated.Models.Application_settings_schema_stats.CreateFromDiscriminatorValue); } },
                 { "tenant_id", n => { TenantId = n.GetStringValue(); } },
