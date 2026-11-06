@@ -141,7 +141,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.PushProvider?>("provider"); }
             set { BackingStore?.Set("provider", value); }
         }
-        /// <summary>The status property</summary>
+        /// <summary>disabled: the Application was retired.</summary>
         public global::Substratal.Hub.Core.Api.Generated.Models.PushCredential_status? Status
         {
             get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.PushCredential_status?>("status"); }

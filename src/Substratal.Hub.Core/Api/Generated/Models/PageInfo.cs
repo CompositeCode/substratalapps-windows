@@ -43,6 +43,18 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("next_cursor", value); }
         }
 #endif
+        /// <summary>Only with `include=total`. Rows matching the current filters across every page, ignoring `cursor`; 10000 when capped.</summary>
+        public int? Total
+        {
+            get { return BackingStore?.Get<int?>("total"); }
+            set { BackingStore?.Set("total", value); }
+        }
+        /// <summary>Only with `include=total`. True when there are more than 10,000 matching rows.</summary>
+        public bool? TotalCapped
+        {
+            get { return BackingStore?.Get<bool?>("total_capped"); }
+            set { BackingStore?.Set("total_capped", value); }
+        }
         /// <summary>
         /// Instantiates a new <see cref="global::Substratal.Hub.Core.Api.Generated.Models.PageInfo"/> and sets the default values.
         /// </summary>
@@ -71,6 +83,8 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             {
                 { "has_more", n => { HasMore = n.GetBoolValue(); } },
                 { "next_cursor", n => { NextCursor = n.GetStringValue(); } },
+                { "total", n => { Total = n.GetIntValue(); } },
+                { "total_capped", n => { TotalCapped = n.GetBoolValue(); } },
             };
         }
         /// <summary>
@@ -82,6 +96,8 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteBoolValue("has_more", HasMore);
             writer.WriteStringValue("next_cursor", NextCursor);
+            writer.WriteIntValue("total", Total);
+            writer.WriteBoolValue("total_capped", TotalCapped);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

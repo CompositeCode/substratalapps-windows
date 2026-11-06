@@ -77,11 +77,17 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             get { return BackingStore?.Get<DateTimeOffset?>("last_login_at"); }
             set { BackingStore?.Set("last_login_at", value); }
         }
-        /// <summary>The mfa_enabled property</summary>
+        /// <summary>TOTP confirmed, or at least one passkey (Auth → MFA).</summary>
         public bool? MfaEnabled
         {
             get { return BackingStore?.Get<bool?>("mfa_enabled"); }
             set { BackingStore?.Set("mfa_enabled", value); }
+        }
+        /// <summary>Staff (holding a platform Role that grants a permission) without MFA, neither TOTP nor a passkey. Once staff MFA is enforced, their sessions can only enroll, read themselves, change password, and log out (Auth → Staff MFA).</summary>
+        public bool? MfaEnrollmentRequired
+        {
+            get { return BackingStore?.Get<bool?>("mfa_enrollment_required"); }
+            set { BackingStore?.Set("mfa_enrollment_required", value); }
         }
         /// <summary>The pending_email property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -188,6 +194,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
                 { "id", n => { Id = n.GetStringValue(); } },
                 { "last_login_at", n => { LastLoginAt = n.GetDateTimeOffsetValue(); } },
                 { "mfa_enabled", n => { MfaEnabled = n.GetBoolValue(); } },
+                { "mfa_enrollment_required", n => { MfaEnrollmentRequired = n.GetBoolValue(); } },
                 { "pending_email", n => { PendingEmail = n.GetStringValue(); } },
                 { "plan", n => { Plan = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.Plan>(); } },
                 { "plan_sources", n => { PlanSources = n.GetCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.PlanSource>(global::Substratal.Hub.Core.Api.Generated.Models.PlanSource.CreateFromDiscriminatorValue)?.AsList(); } },
@@ -211,6 +218,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             writer.WriteStringValue("id", Id);
             writer.WriteDateTimeOffsetValue("last_login_at", LastLoginAt);
             writer.WriteBoolValue("mfa_enabled", MfaEnabled);
+            writer.WriteBoolValue("mfa_enrollment_required", MfaEnrollmentRequired);
             writer.WriteStringValue("pending_email", PendingEmail);
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.Plan>("plan", Plan);
             writer.WriteCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.PlanSource>("plan_sources", PlanSources);

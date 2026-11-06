@@ -3,6 +3,7 @@
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions.Store;
+using Substratal.Hub.Core.Api.Generated.Models;
 using System.Collections.Generic;
 using System.IO;
 using System;
@@ -53,6 +54,22 @@ namespace Substratal.Hub.Core.Api.Generated.Auth.Mfa.Verify
             set { BackingStore?.Set("mfa_token", value); }
         }
 #endif
+        /// <summary>The PublicKeyCredential from navigator.credentials.get(), as JSON (toJSON()).</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::Substratal.Hub.Core.Api.Generated.Models.PasskeyAssertion? Passkey
+        {
+            get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.PasskeyAssertion?>("passkey"); }
+            set { BackingStore?.Set("passkey", value); }
+        }
+#nullable restore
+#else
+        public global::Substratal.Hub.Core.Api.Generated.Models.PasskeyAssertion Passkey
+        {
+            get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.PasskeyAssertion>("passkey"); }
+            set { BackingStore?.Set("passkey", value); }
+        }
+#endif
         /// <summary>The recovery_code property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -97,6 +114,7 @@ namespace Substratal.Hub.Core.Api.Generated.Auth.Mfa.Verify
             {
                 { "code", n => { Code = n.GetStringValue(); } },
                 { "mfa_token", n => { MfaToken = n.GetStringValue(); } },
+                { "passkey", n => { Passkey = n.GetObjectValue<global::Substratal.Hub.Core.Api.Generated.Models.PasskeyAssertion>(global::Substratal.Hub.Core.Api.Generated.Models.PasskeyAssertion.CreateFromDiscriminatorValue); } },
                 { "recovery_code", n => { RecoveryCode = n.GetStringValue(); } },
             };
         }
@@ -109,6 +127,7 @@ namespace Substratal.Hub.Core.Api.Generated.Auth.Mfa.Verify
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("code", Code);
             writer.WriteStringValue("mfa_token", MfaToken);
+            writer.WriteObjectValue<global::Substratal.Hub.Core.Api.Generated.Models.PasskeyAssertion>("passkey", Passkey);
             writer.WriteStringValue("recovery_code", RecoveryCode);
             writer.WriteAdditionalData(AdditionalData);
         }

@@ -34,7 +34,7 @@ namespace Substratal.Hub.Core.Api.Generated.Auth.Mfa.Verify
         {
         }
         /// <summary>
-        /// Complete a login that returned an MFA challenge
+        /// Send the mfa_token and exactly one of code (TOTP), recovery_code, or passkey (an assertion for options from POST /auth/mfa/passkey-options). A passkey sign-in adds hwk to the session&apos;s amr.
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.AuthSession"/></returns>
         /// <param name="body">The request body</param>
@@ -65,7 +65,7 @@ namespace Substratal.Hub.Core.Api.Generated.Auth.Mfa.Verify
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.AuthSession>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.AuthSession.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Complete a login that returned an MFA challenge
+        /// Send the mfa_token and exactly one of code (TOTP), recovery_code, or passkey (an assertion for options from POST /auth/mfa/passkey-options). A passkey sign-in adds hwk to the session&apos;s amr.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

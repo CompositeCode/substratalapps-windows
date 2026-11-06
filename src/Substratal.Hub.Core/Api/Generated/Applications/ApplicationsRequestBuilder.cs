@@ -35,7 +35,7 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public ApplicationsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/applications{?access_tier*,cursor*,limit*,owned*,owner_organization_id*,owner_user_id*,review_status*,tenant_id*,visibility*}", pathParameters)
+        public ApplicationsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/applications{?access_tier*,cursor*,include*,include_inactive*,limit*,owned*,owner_organization_id*,owner_user_id*,q*,review_status*,sort*,tenant_id*,visibility*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,16 +43,17 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public ApplicationsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/applications{?access_tier*,cursor*,limit*,owned*,owner_organization_id*,owner_user_id*,review_status*,tenant_id*,visibility*}", rawUrl)
+        public ApplicationsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/applications{?access_tier*,cursor*,include*,include_inactive*,limit*,owned*,owner_organization_id*,owner_user_id*,q*,review_status*,sort*,tenant_id*,visibility*}", rawUrl)
         {
         }
         /// <summary>
-        /// List the catalog (filtered by visibility rules)
+        /// Newest first by created_at, ties broken by id. With applications.manage, review_status=pending_review is the review queue and defaults to oldest-waiting first, by review_requested_at (falling back to created_at). sort sets the order explicitly by created_at: created_at for oldest first, -created_at for newest first, in the queue too. A cursor is only valid under the sort it was issued with.
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.ApplicationSummaryPage"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
         /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 400 status code</exception>
+        /// <exception cref="global::Substratal.Hub.Core.Api.Generated.Models.Error">When receiving a 422 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationSummaryPage?> GetAsync(Action<RequestConfiguration<global::Substratal.Hub.Core.Api.Generated.Applications.ApplicationsRequestBuilder.ApplicationsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -66,11 +67,12 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
                 { "400", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
+                { "422", global::Substratal.Hub.Core.Api.Generated.Models.Error.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationSummaryPage>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.ApplicationSummaryPage.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// applications.manage creates any Application, approved by default (concierge onboarding). Any other User with a verified email may submit their own: it&apos;s owned by the caller (or an Organization they&apos;re an org_admin of), starts in pending_review, and can&apos;t set visibility, access_tier, review_status, or review_notes (403 moderation_field_forbidden). Unverified email is 403 email_not_verified; API Keys without applications.manage are 403 forbidden. Self-service submissions are limited to 10 per User per day.
+        /// applications.manage creates any Application, approved by default (concierge onboarding). Any other User with a verified email may submit their own: it&apos;s owned by the caller (or an Organization they&apos;re an org_admin of), starts in pending_review, and can&apos;t set visibility, review_status, or review_notes (403 moderation_field_forbidden). Its access_tier is free or restricted (the default); standard is 422 access_tier_reserved. Unverified email is 403 email_not_verified; API Keys without applications.manage are 403 forbidden. Self-service submissions are limited to 10 per User per day.
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.Application"/></returns>
         /// <param name="body">The request body</param>
@@ -103,7 +105,7 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.Application>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.Application.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// List the catalog (filtered by visibility rules)
+        /// Newest first by created_at, ties broken by id. With applications.manage, review_status=pending_review is the review queue and defaults to oldest-waiting first, by review_requested_at (falling back to created_at). sort sets the order explicitly by created_at: created_at for oldest first, -created_at for newest first, in the queue too. A cursor is only valid under the sort it was issued with.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -122,7 +124,7 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
             return requestInfo;
         }
         /// <summary>
-        /// applications.manage creates any Application, approved by default (concierge onboarding). Any other User with a verified email may submit their own: it&apos;s owned by the caller (or an Organization they&apos;re an org_admin of), starts in pending_review, and can&apos;t set visibility, access_tier, review_status, or review_notes (403 moderation_field_forbidden). Unverified email is 403 email_not_verified; API Keys without applications.manage are 403 forbidden. Self-service submissions are limited to 10 per User per day.
+        /// applications.manage creates any Application, approved by default (concierge onboarding). Any other User with a verified email may submit their own: it&apos;s owned by the caller (or an Organization they&apos;re an org_admin of), starts in pending_review, and can&apos;t set visibility, review_status, or review_notes (403 moderation_field_forbidden). Its access_tier is free or restricted (the default); standard is 422 access_tier_reserved. Unverified email is 403 email_not_verified; API Keys without applications.manage are 403 forbidden. Self-service submissions are limited to 10 per User per day.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>
@@ -153,7 +155,7 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
             return new global::Substratal.Hub.Core.Api.Generated.Applications.ApplicationsRequestBuilder(rawUrl, RequestAdapter);
         }
         /// <summary>
-        /// List the catalog (filtered by visibility rules)
+        /// Newest first by created_at, ties broken by id. With applications.manage, review_status=pending_review is the review queue and defaults to oldest-waiting first, by review_requested_at (falling back to created_at). sort sets the order explicitly by created_at: created_at for oldest first, -created_at for newest first, in the queue too. A cursor is only valid under the sort it was issued with.
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class ApplicationsRequestBuilderGetQueryParameters 
@@ -175,6 +177,12 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
             public string Cursor { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>`total` adds `page.total` and `page.total_capped`: the number of rows matching the current filters across every page, counted up to 10,000 (Conventions → Pagination). Omitted unless requested.</summary>
+            [QueryParameter("include")]
+            public global::Substratal.Hub.Core.Api.Generated.Applications.GetIncludeQueryParameterType? Include { get; set; }
+            /// <summary>Include retired Applications (also included by review_status=retired)</summary>
+            [QueryParameter("include_inactive")]
+            public bool? IncludeInactive { get; set; }
             #pragma warning disable CS1591
             [QueryParameter("limit")]
             public int? Limit { get; set; }
@@ -209,10 +217,23 @@ namespace Substratal.Hub.Core.Api.Generated.Applications
             public string OwnerUserId { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>Case-insensitive prefix match on name or slug</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("q")]
+            public string? Q { get; set; }
+#nullable restore
+#else
+            [QueryParameter("q")]
+            public string Q { get; set; }
+#endif
             #pragma warning disable CS1591
             [QueryParameter("review_status")]
             public global::Substratal.Hub.Core.Api.Generated.Models.ApplicationReviewStatus? ReviewStatus { get; set; }
             #pragma warning restore CS1591
+            /// <summary>created_at (oldest first) or -created_at (newest first). Ties are broken by id in the same direction.</summary>
+            [QueryParameter("sort")]
+            public global::Substratal.Hub.Core.Api.Generated.Applications.GetSortQueryParameterType? Sort { get; set; }
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
             #pragma warning disable CS1591

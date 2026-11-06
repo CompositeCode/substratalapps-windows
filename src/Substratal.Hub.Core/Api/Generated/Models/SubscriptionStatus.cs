@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System;
 namespace Substratal.Hub.Core.Api.Generated.Models
 {
-    /// <summary>Mirrors Stripe. active, trialing, and past_due cover their users with Standard; the rest don&apos;t.</summary>
+    /// <summary>Mirrors the payment processor. active, trialing, and past_due cover their users with Standard; the rest don&apos;t.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public enum SubscriptionStatus
     {

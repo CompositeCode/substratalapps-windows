@@ -5,6 +5,7 @@ using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
 using Substratal.Hub.Core.Api.Generated.Models;
 using Substratal.Hub.Core.Api.Generated.Users.Item.Apps;
+using Substratal.Hub.Core.Api.Generated.Users.Item.Avatar;
 using Substratal.Hub.Core.Api.Generated.Users.Item.Devices;
 using Substratal.Hub.Core.Api.Generated.Users.Item.Entitlements;
 using Substratal.Hub.Core.Api.Generated.Users.Item.ErasureRequests;
@@ -36,6 +37,11 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item
         public global::Substratal.Hub.Core.Api.Generated.Users.Item.Apps.AppsRequestBuilder Apps
         {
             get => new global::Substratal.Hub.Core.Api.Generated.Users.Item.Apps.AppsRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The avatar property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Users.Item.Avatar.AvatarRequestBuilder Avatar
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Users.Item.Avatar.AvatarRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The devices property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Users.Item.Devices.DevicesRequestBuilder Devices
