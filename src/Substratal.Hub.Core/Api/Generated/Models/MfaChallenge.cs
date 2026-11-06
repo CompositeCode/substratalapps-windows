@@ -27,7 +27,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             get { return BackingStore?.Get<int?>("expires_in"); }
             set { BackingStore?.Set("expires_in", value); }
         }
-        /// <summary>The methods property</summary>
+        /// <summary>The second factors this User can complete the challenge with: totp when TOTP is on, passkey when they have a passkey, and always recovery_code.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::Substratal.Hub.Core.Api.Generated.Models.MfaChallenge_methods?>? Methods

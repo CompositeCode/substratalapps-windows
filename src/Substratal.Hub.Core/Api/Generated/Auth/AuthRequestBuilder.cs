@@ -10,6 +10,7 @@ using Substratal.Hub.Core.Api.Generated.Auth.Logout;
 using Substratal.Hub.Core.Api.Generated.Auth.Mfa;
 using Substratal.Hub.Core.Api.Generated.Auth.Oauth;
 using Substratal.Hub.Core.Api.Generated.Auth.Password;
+using Substratal.Hub.Core.Api.Generated.Auth.Reauthenticate;
 using Substratal.Hub.Core.Api.Generated.Auth.Signup;
 using Substratal.Hub.Core.Api.Generated.Auth.Sso;
 using Substratal.Hub.Core.Api.Generated.Auth.Token;
@@ -64,6 +65,11 @@ namespace Substratal.Hub.Core.Api.Generated.Auth
         public global::Substratal.Hub.Core.Api.Generated.Auth.Password.PasswordRequestBuilder Password
         {
             get => new global::Substratal.Hub.Core.Api.Generated.Auth.Password.PasswordRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The reauthenticate property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Auth.Reauthenticate.ReauthenticateRequestBuilder Reauthenticate
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Auth.Reauthenticate.ReauthenticateRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The signup property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Auth.Signup.SignupRequestBuilder Signup

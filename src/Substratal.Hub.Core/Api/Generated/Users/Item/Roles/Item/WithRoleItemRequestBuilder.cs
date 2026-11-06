@@ -60,7 +60,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Roles.Item
             await RequestAdapter.SendNoContentAsync(requestInfo, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Assign a Role (idempotent — 200 if already held)
+        /// Assigning a platform Role that grants a permission to a User without MFA succeeds, but the Role takes effect only once they enroll TOTP; the response&apos;s mfa_enrollment_required says so (Auth → Staff MFA).
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.UserRoleAssignment"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -106,7 +106,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Roles.Item
             return requestInfo;
         }
         /// <summary>
-        /// Assign a Role (idempotent — 200 if already held)
+        /// Assigning a platform Role that grants a permission to a User without MFA succeeds, but the Role takes effect only once they enroll TOTP; the response&apos;s mfa_enrollment_required says so (Auth → Staff MFA).
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>

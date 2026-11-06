@@ -12,6 +12,10 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         #pragma warning disable CS1591
         Totp,
         #pragma warning restore CS1591
+        [EnumMember(Value = "passkey")]
+        #pragma warning disable CS1591
+        Passkey,
+        #pragma warning restore CS1591
         [EnumMember(Value = "recovery_code")]
         #pragma warning disable CS1591
         Recovery_code,

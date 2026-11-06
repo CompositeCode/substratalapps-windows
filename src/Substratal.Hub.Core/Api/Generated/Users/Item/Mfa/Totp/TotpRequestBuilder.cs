@@ -46,7 +46,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp
         {
         }
         /// <summary>
-        /// Support reset of a user&apos;s TOTP (requires users.manage)
+        /// Removes TOTP, every passkey, and the recovery codes, and revokes every session. 409 mfa_not_enabled when the User has neither.
         /// </summary>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -72,7 +72,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp
             await RequestAdapter.SendNoContentAsync(requestInfo, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Begin TOTP enrollment (self only)
+        /// A User who already has a passkey needs a recent MFA check (step-up), like registering another passkey.
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.TotpPostResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -97,7 +97,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.TotpPostResponse>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.TotpPostResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Support reset of a user&apos;s TOTP (requires users.manage)
+        /// Removes TOTP, every passkey, and the recovery codes, and revokes every session. 409 mfa_not_enabled when the User has neither.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -116,7 +116,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp
             return requestInfo;
         }
         /// <summary>
-        /// Begin TOTP enrollment (self only)
+        /// A User who already has a passkey needs a recent MFA check (step-up), like registering another passkey.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>

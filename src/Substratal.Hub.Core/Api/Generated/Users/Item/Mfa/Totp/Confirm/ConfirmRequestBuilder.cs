@@ -34,7 +34,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.Confirm
         {
         }
         /// <summary>
-        /// Confirm TOTP enrollment with a first code; returns recovery codes once
+        /// recovery_codes is present only when TOTP is the User&apos;s first MFA method. A User who already has a passkey keeps their existing codes, and needs a recent MFA check (step-up).
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.Confirm.ConfirmPostResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -63,7 +63,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.Confirm
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.Confirm.ConfirmPostResponse>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.Confirm.ConfirmPostResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Confirm TOTP enrollment with a first code; returns recovery codes once
+        /// recovery_codes is present only when TOTP is the User&apos;s first MFA method. A User who already has a passkey keeps their existing codes, and needs a recent MFA check (step-up).
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

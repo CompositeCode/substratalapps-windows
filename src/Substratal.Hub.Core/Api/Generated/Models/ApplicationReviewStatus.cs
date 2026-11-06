@@ -24,5 +24,9 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         #pragma warning disable CS1591
         Suspended,
         #pragma warning restore CS1591
+        [EnumMember(Value = "retired")]
+        #pragma warning disable CS1591
+        Retired,
+        #pragma warning restore CS1591
     }
 }

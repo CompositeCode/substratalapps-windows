@@ -37,6 +37,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("cancel_url", value); }
         }
 #endif
+        /// <summary>How often Standard is billed. Default month.</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval? Interval
+        {
+            get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval?>("interval"); }
+            set { BackingStore?.Set("interval", value); }
+        }
         /// <summary>Only standard is self-service; business and enterprise return 422 plan_requires_sales.</summary>
         public global::Substratal.Hub.Core.Api.Generated.Models.CheckoutSessionCreate_plan? Plan
         {
@@ -86,6 +92,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "cancel_url", n => { CancelUrl = n.GetStringValue(); } },
+                { "interval", n => { Interval = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval>(); } },
                 { "plan", n => { Plan = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.CheckoutSessionCreate_plan>(); } },
                 { "success_url", n => { SuccessUrl = n.GetStringValue(); } },
             };
@@ -98,6 +105,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("cancel_url", CancelUrl);
+            writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval>("interval", Interval);
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.CheckoutSessionCreate_plan>("plan", Plan);
             writer.WriteStringValue("success_url", SuccessUrl);
             writer.WriteAdditionalData(AdditionalData);
