@@ -4,6 +4,7 @@ using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
 using Substratal.Hub.Core.Api.Generated.Models;
+using Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions.Item;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,6 +18,18 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class CheckoutSessionsRequestBuilder : BaseRequestBuilder
     {
+        /// <summary>Gets an item from the Substratal.Hub.Core.Api.Generated.users.me.billing.checkoutSessions.item collection</summary>
+        /// <param name="position">The Checkout Session id from success_url&apos;s session_id parameter.</param>
+        /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions.Item.WithSession_ItemRequestBuilder"/></returns>
+        public global::Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions.Item.WithSession_ItemRequestBuilder this[string position]
+        {
+            get
+            {
+                var urlTplParams = new Dictionary<string, object>(PathParameters);
+                urlTplParams.Add("session_id", position);
+                return new global::Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions.Item.WithSession_ItemRequestBuilder(urlTplParams, RequestAdapter);
+            }
+        }
         /// <summary>
         /// Instantiates a new <see cref="global::Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions.CheckoutSessionsRequestBuilder"/> and sets the default values.
         /// </summary>
@@ -34,7 +47,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions
         {
         }
         /// <summary>
-        /// Start a Stripe Checkout to subscribe yourself to Standard (User token)
+        /// Start a Checkout to subscribe yourself to Standard (User token)
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.RedirectSession"/></returns>
         /// <param name="body">The request body</param>
@@ -65,7 +78,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Me.Billing.CheckoutSessions
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.RedirectSession>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.RedirectSession.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Start a Stripe Checkout to subscribe yourself to Standard (User token)
+        /// Start a Checkout to subscribe yourself to Standard (User token)
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

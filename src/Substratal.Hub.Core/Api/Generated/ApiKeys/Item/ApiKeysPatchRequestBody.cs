@@ -53,6 +53,12 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys.Item
             set { BackingStore?.Set("permissions", value); }
         }
 #endif
+        /// <summary>Platform api_keys.manage only (403 forbidden otherwise). Null restores the platform default.</summary>
+        public int? RateLimitPerMinute
+        {
+            get { return BackingStore?.Get<int?>("rate_limit_per_minute"); }
+            set { BackingStore?.Set("rate_limit_per_minute", value); }
+        }
         /// <summary>The restrict_destructive property</summary>
         public bool? RestrictDestructive
         {
@@ -87,6 +93,7 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys.Item
             {
                 { "name", n => { Name = n.GetStringValue(); } },
                 { "permissions", n => { Permissions = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
+                { "rate_limit_per_minute", n => { RateLimitPerMinute = n.GetIntValue(); } },
                 { "restrict_destructive", n => { RestrictDestructive = n.GetBoolValue(); } },
             };
         }
@@ -99,6 +106,7 @@ namespace Substratal.Hub.Core.Api.Generated.ApiKeys.Item
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("name", Name);
             writer.WriteCollectionOfPrimitiveValues<string>("permissions", Permissions);
+            writer.WriteIntValue("rate_limit_per_minute", RateLimitPerMinute);
             writer.WriteBoolValue("restrict_destructive", RestrictDestructive);
             writer.WriteAdditionalData(AdditionalData);
         }

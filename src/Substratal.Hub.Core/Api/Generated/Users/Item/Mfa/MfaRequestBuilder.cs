@@ -2,6 +2,7 @@
 #pragma warning disable CS0618
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions;
+using Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Passkeys;
 using Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +16,11 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Item.Mfa
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class MfaRequestBuilder : BaseRequestBuilder
     {
+        /// <summary>The passkeys property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Passkeys.PasskeysRequestBuilder Passkeys
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Passkeys.PasskeysRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>The totp property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Users.Item.Mfa.Totp.TotpRequestBuilder Totp
         {

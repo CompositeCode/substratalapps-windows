@@ -2,6 +2,7 @@
 #pragma warning disable CS0618
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions;
+using Substratal.Hub.Core.Api.Generated.Auth.Mfa.PasskeyOptions;
 using Substratal.Hub.Core.Api.Generated.Auth.Mfa.Verify;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +16,11 @@ namespace Substratal.Hub.Core.Api.Generated.Auth.Mfa
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class MfaRequestBuilder : BaseRequestBuilder
     {
+        /// <summary>The passkeyOptions property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Auth.Mfa.PasskeyOptions.PasskeyOptionsRequestBuilder PasskeyOptions
+        {
+            get => new global::Substratal.Hub.Core.Api.Generated.Auth.Mfa.PasskeyOptions.PasskeyOptionsRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>The verify property</summary>
         public global::Substratal.Hub.Core.Api.Generated.Auth.Mfa.Verify.VerifyRequestBuilder Verify
         {

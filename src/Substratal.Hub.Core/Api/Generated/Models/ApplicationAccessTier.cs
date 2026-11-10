@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System;
 namespace Substratal.Hub.Core.Api.Generated.Models
 {
-    /// <summary>Which plan unlocks the Application: free for every User, standard for Users covered by a Standard subscription. Set by applications.manage; defaults to standard.</summary>
+    /// <summary>Who gets in without a grant. free: every User. standard: Users covered by a Standard subscription; first_party (Substratal&apos;s own) Applications only. restricted: only the people the developer grants Entitlements to, from their own billing or none. A first-party Application defaults to standard and only applications.manage changes its tier. Any other Application defaults to restricted, and its owner chooses free or restricted while it&apos;s approved or pending_review (409 application_not_available otherwise, at most 10 changes a day). standard on one that isn&apos;t first-party is 422 access_tier_reserved.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public enum ApplicationAccessTier
     {
@@ -14,6 +14,10 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         [EnumMember(Value = "standard")]
         #pragma warning disable CS1591
         Standard,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "restricted")]
+        #pragma warning disable CS1591
+        Restricted,
         #pragma warning restore CS1591
     }
 }
