@@ -34,7 +34,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Me.Billing.PortalSessions
         {
         }
         /// <summary>
-        /// Open the Stripe Customer Portal for your own subscription (User token)
+        /// Open the billing portal for your own subscription (User token)
         /// </summary>
         /// <returns>A <see cref="global::Substratal.Hub.Core.Api.Generated.Models.RedirectSession"/></returns>
         /// <param name="body">The request body</param>
@@ -63,7 +63,7 @@ namespace Substratal.Hub.Core.Api.Generated.Users.Me.Billing.PortalSessions
             return await RequestAdapter.SendAsync<global::Substratal.Hub.Core.Api.Generated.Models.RedirectSession>(requestInfo, global::Substratal.Hub.Core.Api.Generated.Models.RedirectSession.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Open the Stripe Customer Portal for your own subscription (User token)
+        /// Open the billing portal for your own subscription (User token)
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

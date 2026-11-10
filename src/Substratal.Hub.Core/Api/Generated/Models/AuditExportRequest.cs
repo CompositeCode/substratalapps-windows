@@ -98,6 +98,22 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("organization_id", value); }
         }
 #endif
+        /// <summary>The request_id property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? RequestId
+        {
+            get { return BackingStore?.Get<string?>("request_id"); }
+            set { BackingStore?.Set("request_id", value); }
+        }
+#nullable restore
+#else
+        public string RequestId
+        {
+            get { return BackingStore?.Get<string>("request_id"); }
+            set { BackingStore?.Set("request_id", value); }
+        }
+#endif
         /// <summary>The since property</summary>
         public DateTimeOffset? Since
         {
@@ -197,6 +213,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
                 { "application_id", n => { ApplicationId = n.GetStringValue(); } },
                 { "format", n => { Format = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.AuditExportRequest_format>(); } },
                 { "organization_id", n => { OrganizationId = n.GetStringValue(); } },
+                { "request_id", n => { RequestId = n.GetStringValue(); } },
                 { "since", n => { Since = n.GetDateTimeOffsetValue(); } },
                 { "target_id", n => { TargetId = n.GetStringValue(); } },
                 { "target_type", n => { TargetType = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.AuditTargetType>(); } },
@@ -218,6 +235,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             writer.WriteStringValue("application_id", ApplicationId);
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.AuditExportRequest_format>("format", Format);
             writer.WriteStringValue("organization_id", OrganizationId);
+            writer.WriteStringValue("request_id", RequestId);
             writer.WriteDateTimeOffsetValue("since", Since);
             writer.WriteStringValue("target_id", TargetId);
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.AuditTargetType>("target_type", TargetType);

@@ -124,6 +124,22 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("organizations", value); }
         }
 #endif
+        /// <summary>Passkey metadata. Never includes the credential id or public key.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::Substratal.Hub.Core.Api.Generated.Models.Passkey>? Passkeys
+        {
+            get { return BackingStore?.Get<List<global::Substratal.Hub.Core.Api.Generated.Models.Passkey>?>("passkeys"); }
+            set { BackingStore?.Set("passkeys", value); }
+        }
+#nullable restore
+#else
+        public List<global::Substratal.Hub.Core.Api.Generated.Models.Passkey> Passkeys
+        {
+            get { return BackingStore?.Get<List<global::Substratal.Hub.Core.Api.Generated.Models.Passkey>>("passkeys"); }
+            set { BackingStore?.Set("passkeys", value); }
+        }
+#endif
         /// <summary>The profile property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -237,6 +253,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
                 { "identities", n => { Identities = n.GetCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.UserExport_identities>(global::Substratal.Hub.Core.Api.Generated.Models.UserExport_identities.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "notifications", n => { Notifications = n.GetCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.Notification>(global::Substratal.Hub.Core.Api.Generated.Models.Notification.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "organizations", n => { Organizations = n.GetCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.UserExport_organizations>(global::Substratal.Hub.Core.Api.Generated.Models.UserExport_organizations.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "passkeys", n => { Passkeys = n.GetCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.Passkey>(global::Substratal.Hub.Core.Api.Generated.Models.Passkey.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "profile", n => { Profile = n.GetObjectValue<global::Substratal.Hub.Core.Api.Generated.Models.Profile>(global::Substratal.Hub.Core.Api.Generated.Models.Profile.CreateFromDiscriminatorValue); } },
                 { "roles", n => { Roles = n.GetCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.UserRoleAssignment>(global::Substratal.Hub.Core.Api.Generated.Models.UserRoleAssignment.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "sessions", n => { Sessions = n.GetCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.Session>(global::Substratal.Hub.Core.Api.Generated.Models.Session.CreateFromDiscriminatorValue)?.AsList(); } },
@@ -258,6 +275,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             writer.WriteCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.UserExport_identities>("identities", Identities);
             writer.WriteCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.Notification>("notifications", Notifications);
             writer.WriteCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.UserExport_organizations>("organizations", Organizations);
+            writer.WriteCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.Passkey>("passkeys", Passkeys);
             writer.WriteObjectValue<global::Substratal.Hub.Core.Api.Generated.Models.Profile>("profile", Profile);
             writer.WriteCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.UserRoleAssignment>("roles", Roles);
             writer.WriteCollectionOfObjectValues<global::Substratal.Hub.Core.Api.Generated.Models.Session>("sessions", Sessions);

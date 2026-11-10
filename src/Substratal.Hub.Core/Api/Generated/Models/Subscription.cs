@@ -77,6 +77,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("id", value); }
         }
 #endif
+        /// <summary>The interval property</summary>
+        public global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval? Interval
+        {
+            get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval?>("interval"); }
+            set { BackingStore?.Set("interval", value); }
+        }
         /// <summary>The member_overrides property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -137,7 +143,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("quantity", value); }
         }
 #endif
-        /// <summary>Mirrors Stripe. active, trialing, and past_due cover their users with Standard; the rest don&apos;t.</summary>
+        /// <summary>Mirrors the payment processor. active, trialing, and past_due cover their users with Standard; the rest don&apos;t.</summary>
         public global::Substratal.Hub.Core.Api.Generated.Models.SubscriptionStatus? Status
         {
             get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.SubscriptionStatus?>("status"); }
@@ -155,7 +161,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             get { return BackingStore?.Get<bool?>("test_mode"); }
             set { BackingStore?.Set("test_mode", value); }
         }
-        /// <summary>Cents per user per month (600).</summary>
+        /// <summary>The subscribed price, in cents per user per interval.</summary>
         public int? UnitAmount
         {
             get { return BackingStore?.Get<int?>("unit_amount"); }
@@ -215,6 +221,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
                 { "current_period_end", n => { CurrentPeriodEnd = n.GetDateTimeOffsetValue(); } },
                 { "current_period_start", n => { CurrentPeriodStart = n.GetDateTimeOffsetValue(); } },
                 { "id", n => { Id = n.GetStringValue(); } },
+                { "interval", n => { Interval = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval>(); } },
                 { "member_overrides", n => { MemberOverrides = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "member_scope", n => { MemberScope = n.GetEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.EntitlementMemberScope>(); } },
                 { "organization_id", n => { OrganizationId = n.GetStringValue(); } },
@@ -241,6 +248,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             writer.WriteDateTimeOffsetValue("current_period_end", CurrentPeriodEnd);
             writer.WriteDateTimeOffsetValue("current_period_start", CurrentPeriodStart);
             writer.WriteStringValue("id", Id);
+            writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.BillingInterval>("interval", Interval);
             writer.WriteCollectionOfPrimitiveValues<string>("member_overrides", MemberOverrides);
             writer.WriteEnumValue<global::Substratal.Hub.Core.Api.Generated.Models.EntitlementMemberScope>("member_scope", MemberScope);
             writer.WriteStringValue("organization_id", OrganizationId);

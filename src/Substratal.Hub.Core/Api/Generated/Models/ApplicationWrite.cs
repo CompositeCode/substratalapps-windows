@@ -13,7 +13,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
     public partial class ApplicationWrite : IAdditionalDataHolder, IBackedModel, IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>Which plan unlocks the Application: free for every User, standard for Users covered by a Standard subscription. Set by applications.manage; defaults to standard.</summary>
+        /// <summary>Who gets in without a grant. free: every User. standard: Users covered by a Standard subscription; first_party (Substratal&apos;s own) Applications only. restricted: only the people the developer grants Entitlements to, from their own billing or none. A first-party Application defaults to standard and only applications.manage changes its tier. Any other Application defaults to restricted, and its owner chooses free or restricted while it&apos;s approved or pending_review (409 application_not_available otherwise, at most 10 changes a day). standard on one that isn&apos;t first-party is 422 access_tier_reserved.</summary>
         public global::Substratal.Hub.Core.Api.Generated.Models.ApplicationAccessTier? AccessTier
         {
             get { return BackingStore?.Get<global::Substratal.Hub.Core.Api.Generated.Models.ApplicationAccessTier?>("access_tier"); }
@@ -91,6 +91,12 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             set { BackingStore?.Set("email_from_name", value); }
         }
 #endif
+        /// <summary>Substratal&apos;s own Application. Only applications.manage sets it, and only a first-party Application can be access_tier standard. Staff-created customer Applications (concierge onboarding) aren&apos;t first-party.</summary>
+        public bool? FirstParty
+        {
+            get { return BackingStore?.Get<bool?>("first_party"); }
+            set { BackingStore?.Set("first_party", value); }
+        }
         /// <summary>The icon_url property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -292,6 +298,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
         {
             BackingStore = BackingStoreFactorySingleton.Instance.CreateBackingStore();
             AdditionalData = new Dictionary<string, object>();
+            FirstParty = false;
             ReceivesPlatformNotifications = false;
         }
         /// <summary>
@@ -317,6 +324,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
                 { "default_app_role", n => { DefaultAppRole = n.GetStringValue(); } },
                 { "description", n => { Description = n.GetStringValue(); } },
                 { "email_from_name", n => { EmailFromName = n.GetStringValue(); } },
+                { "first_party", n => { FirstParty = n.GetBoolValue(); } },
                 { "icon_url", n => { IconUrl = n.GetStringValue(); } },
                 { "launch_url", n => { LaunchUrl = n.GetStringValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
@@ -345,6 +353,7 @@ namespace Substratal.Hub.Core.Api.Generated.Models
             writer.WriteStringValue("default_app_role", DefaultAppRole);
             writer.WriteStringValue("description", Description);
             writer.WriteStringValue("email_from_name", EmailFromName);
+            writer.WriteBoolValue("first_party", FirstParty);
             writer.WriteStringValue("icon_url", IconUrl);
             writer.WriteStringValue("launch_url", LaunchUrl);
             writer.WriteStringValue("name", Name);
