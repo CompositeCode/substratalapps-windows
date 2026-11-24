@@ -56,6 +56,6 @@ public sealed partial class ScreenPage : Page, IScreenPage
     {
         if (Target is null) return;
         await Launcher.LaunchUriAsync(new Uri(
-            "https://github.com/CompositeCode/substratalapps-applications-specs/blob/main/substratal-application-specs/windows/SCREENS.md"));
+            "https://specs.substratalapps.com/spec/windows/SCREENS.html"));
     }
 }

@@ -17,7 +17,7 @@ Three things changed between 2026-10-21 and 2026-10-23. Where this page and the 
 Sources this plan is built on (read 2026-10-21):
 
 - API spec: <https://compositecode.github.io/substratalapps.com/> (`openapi.yaml` 1.0.0-draft.3, 118 operations) and the API repo (`CompositeCode/substratalapps.com`, branch `main`, including `plan-remaining.md`, `infra/README.md`, and the Go source).
-- UI specs: <https://compositecode.github.io/substratalapps-applications-specs/> (`windows/PLATFORM-SPEC.md`, `windows/SCREENS.md`, `00-shared/*`).
+- UI specs: <https://specs.substratalapps.com/> (`windows/PLATFORM-SPEC.md`, `windows/SCREENS.md`, `00-shared/*`).
 - Production: `GET https://api.substratalapps.com/health` returns `200 {"status":"ok"}`; JWKS is published.
 
 ---

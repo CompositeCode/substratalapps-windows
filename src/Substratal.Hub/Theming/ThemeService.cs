@@ -1,4 +1,4 @@
-// ThemeService.cs (from substratal-application-specs/windows/theme; local change: Themes() finds the dictionary by Source) — applies Settings.theme + the user's light/dark theme choice (generated ids match shared/themes/themes.json)
+// ThemeService.cs (from the Hub specs' windows/theme; local change: Themes() finds the dictionary by Source) — applies Settings.theme + the user's light/dark theme choice (generated ids match shared/themes/themes.json)
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Composition.SystemBackdrops;
 

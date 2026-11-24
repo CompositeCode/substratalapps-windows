@@ -1,11 +1,11 @@
 name: Update the help center
 
-# The Hub help center (CompositeCode/substratalapps-applications-specs → /help/) is the one documentation reference
+# The Hub help center (CompositeCode/substratal-hub-interface-specs → https://specs.substratalapps.com/help/) is the one documentation reference
 # for every Hub app. When this app's code, screen registry or docs change on main, ask the help center to rebuild,
 # so its Windows pages, screen pages and "What's new" reflect what shipped. See help/README.md → Automation there.
 #
 # Needs the secret SPECS_DOCS_TOKEN: a fine-grained token with Contents: read and write on
-# CompositeCode/substratalapps-applications-specs. Without it, this job says so and succeeds.
+# CompositeCode/substratal-hub-interface-specs. Without it, this job says so and succeeds.
 on:
   push:
     branches: [main]
@@ -35,7 +35,7 @@ jobs:
           fi
           version=$(sed -n 's:.*<VersionPrefix>\(.*\)</VersionPrefix>.*:\1:p' Directory.Build.props)
           contract=$(grep -m1 -E '^\s+version:' api/openapi.yaml | awk '{print $2}' | tr -d '"')
-          gh api repos/CompositeCode/substratalapps-applications-specs/dispatches \
+          gh api repos/CompositeCode/substratal-hub-interface-specs/dispatches \
             -f event_type=app-docs-updated \
             -F 'client_payload[app]=windows' \
             -F "client_payload[sha]=$GITHUB_SHA" \

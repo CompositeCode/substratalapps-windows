@@ -1,4 +1,4 @@
-<!-- Night Soil (dark) — generated from shared/themes/themes.json -->
+<!-- Night Soil (dark) — generated from 00-shared/themes/themes.json -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Color x:Key="SystemAccentColor">#8E8CFF</Color>
     <Color x:Key="SystemAccentColorLight1">#A1A0FF</Color>

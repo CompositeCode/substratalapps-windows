@@ -1,4 +1,4 @@
-<!-- Moss Paper (light) — generated from shared/themes/themes.json -->
+<!-- Moss Paper (light) — generated from 00-shared/themes/themes.json -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Color x:Key="SystemAccentColor">#4A7322</Color>
     <Color x:Key="SystemAccentColorLight1">#779659</Color>
