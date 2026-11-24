@@ -2,12 +2,12 @@ namespace Substratal.Hub.Core.Help;
 
 /// <summary>
 /// Links into the Substratal Hub help center, the one documentation reference every Hub app shares. It's built from
-/// CompositeCode/substratalapps-applications-specs (<c>help/</c> and <c>site/help.mjs</c>) and rebuilt whenever this
+/// CompositeCode/substratal-hub-interface-specs (<c>help/</c> and <c>site/help.mjs</c>) and rebuilt whenever this
 /// repository merges to main (<c>.github/workflows/docs-dispatch.yml</c>).
 /// </summary>
 public static class HelpLinks
 {
-    public static Uri Root { get; } = new("https://compositecode.github.io/substratalapps-applications-specs/help/");
+    public static Uri Root { get; } = new("https://specs.substratalapps.com/help/");
 
     /// <summary>The page behind each screen's <b>?</b> button: generated per screen, IDs lower-cased.</summary>
     public static Uri ForScreen(string screenId) => new(Root, $"screens/{screenId.ToLowerInvariant()}.html");

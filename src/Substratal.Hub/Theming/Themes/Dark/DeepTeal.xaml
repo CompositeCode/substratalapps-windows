@@ -1,4 +1,4 @@
-<!-- Deep Teal (dark) — generated from shared/themes/themes.json -->
+<!-- Deep Teal (dark) — generated from 00-shared/themes/themes.json -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Color x:Key="SystemAccentColor">#55CFC9</Color>
     <Color x:Key="SystemAccentColorLight1">#70D9D4</Color>

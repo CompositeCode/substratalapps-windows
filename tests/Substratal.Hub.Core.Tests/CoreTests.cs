@@ -210,7 +210,7 @@ public class SpecTests
 
     [Fact]
     public void Help_links_point_at_generated_screen_pages() =>
-        Assert.Equal("https://compositecode.github.io/substratalapps-applications-specs/help/screens/usr-01.html", HelpLinks.ForScreen("USR-01").ToString());
+        Assert.Equal("https://specs.substratalapps.com/help/screens/usr-01.html", HelpLinks.ForScreen("USR-01").ToString());
 }
 
 public class ErrorCopyTests

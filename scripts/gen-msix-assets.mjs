@@ -1,5 +1,5 @@
 // Generates the MSIX visual assets (src/Substratal.Hub/Assets/*.png) from the brand SVG masters in
-// substratal-application-specs/windows/brand-assets/svg, following PLATFORM-SPEC §4b:
+// the specs package's windows/brand-assets/svg, following PLATFORM-SPEC §4b:
 //   - plated tiles use the tint surface #E8E8F7 so they read on light and dark Start;
 //   - unplated taskbar icons switch palette by theme (altform-unplated = dark taskbar, altform-lightunplated = light);
 //   - 16–24 px use the small mark.
@@ -11,7 +11,9 @@ import path from 'node:path';
 import sharp from 'sharp';
 
 const SPECS = process.env.SPECS_DIR ?? '../substratalapps-applications-specs';
-const SVG = path.join(SPECS, 'substratal-application-specs/windows/brand-assets/svg');
+// The package directory in a checkout of the specs repository: specs/ (substratal-application-specs/ before 2.0.0).
+const PACKAGE = ['specs', 'substratal-application-specs'].find((d) => fs.existsSync(path.join(SPECS, d))) ?? 'specs';
+const SVG = path.join(SPECS, PACKAGE, 'windows/brand-assets/svg');
 const OUT = path.join(import.meta.dirname, '../src/Substratal.Hub/Assets');
 const TINT = '#E8E8F7';
 const svg = (name) => fs.readFileSync(path.join(SVG, `${name}.svg`));

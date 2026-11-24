@@ -6,8 +6,8 @@ The Windows edition of the **Substratal Hub**, the client for the [Substratal Ap
 |---|---|
 | Stack | WinUI 3 on the Windows App SDK 2.x, C# / .NET 10, MVVM (CommunityToolkit.Mvvm), MSIX |
 | API | `https://api.substratalapps.com` with `Substratal-Version: 1` (see [API versioning](#api-versioning)) |
-| Specs | [Hub application specs](https://compositecode.github.io/substratalapps-applications-specs/platforms/windows.html): `windows/PLATFORM-SPEC.md`, `windows/SCREENS.md`, `shared/*` |
-| Help center | [Substratal Hub help](https://compositecode.github.io/substratalapps-applications-specs/help/), the documentation every Hub app links to |
+| Specs | [Hub interface specifications](https://specs.substratalapps.com/platforms/windows.html): `windows/PLATFORM-SPEC.md`, `windows/SCREENS.md`, `00-shared/*` |
+| Help center | [Substratal Hub help](https://specs.substratalapps.com/help/), the documentation every Hub app links to |
 | Plans | [docs/PLAN.md](docs/PLAN.md) (the app) · [docs/API-GAPS.md](docs/API-GAPS.md) (what the API still needs) |
 
 ## Status
